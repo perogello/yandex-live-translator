@@ -1,152 +1,206 @@
 # Yandex Live Subtitles Translator
 
-Локальный перевод live-субтитров Яндекс Браузера на русский. Работает оффлайн через Ollama, без облачных API.
+> Local English → Russian live subtitle translator for Yandex Browser. Runs entirely on your machine through Ollama, no cloud APIs.
 
-```text
-Yandex Browser subtitles -> CDP reader -> local translator -> browser/vMix overlay
+Russian docs: **[README.ru.md](README.ru.md)** · Architecture: **[docs/app-overview.md](docs/app-overview.md)** · Quality metrics: **[docs/translation-quality-metrics.md](docs/translation-quality-metrics.md)**
+
+---
+
+## What it does
+
+Yandex Browser produces real-time English subtitles on YouTube, conference streams, podcasts and most online videos. This project picks those subtitles up, translates them to Russian locally with a self-hosted LLM, and renders the result either inside the browser or on a separate page suitable for vMix / OBS as a browser source.
+
+The whole pipeline runs on the user's PC. Nothing leaves the machine.
+
+## How it works
+
+```
+┌───────────────────────┐
+│   Yandex Browser      │  built-in ASR produces English subtitles
+│   live subtitles      │  (shadow DOM or via remote debugging port)
+└──────────┬────────────┘
+           │
+           ▼
+┌───────────────────────┐    ┌───────────────────────────────┐
+│  Browser extension    │ ←→ │  CDP reader (FastAPI, :8766)  │
+│  (MV3, content+inject)│    │  fallback for closed shadow   │
+│                       │    └───────────────────────────────┘
+│  - segmenter          │
+│  - dedup + overlap    │
+│  - pause handling     │
+│  - context reset      │
+└──────────┬────────────┘
+           │ POST /translate
+           ▼
+┌─────────────────────────────────────────────────────────┐
+│  Translator server (FastAPI, :8765)                     │
+│  - glossary + ASR corrections                           │
+│  - prompt assembly (polished / concise styles)          │
+│  - session name cache                                   │
+│  - output filter: placeholders, quotes, English prefix  │
+└──────────┬─────────────────────────────────────┬────────┘
+           │ /api/chat                           │ /current
+           ▼                                     ▼
+┌────────────────────┐               ┌────────────────────────┐
+│  Ollama            │               │  Overlay               │
+│  translategemma    │               │  - in-page overlay     │
+│  :12b              │               │  - /overlay HTML page  │
+│                    │               │    for vMix / OBS      │
+└────────────────────┘               └────────────────────────┘
 ```
 
-Техническое описание: [docs/app-overview.md](docs/app-overview.md).
-Метрики качества перевода: [docs/translation-quality-metrics.md](docs/translation-quality-metrics.md).
+### Components
 
-## Файлы, которыми пользуешься
-
-| Файл | Что делает | Когда нажимать |
-|---|---|---|
-| `setup_windows.bat` | Первичная установка: venv, зависимости, скачивание модели | Один раз на новом ПК |
-| `run_all_servers.bat` | Запуск переводчика, CDP-reader, Yandex с debug-портом | Перед каждым эфиром |
-| `doctor.bat` | Проверка «всё ли установлено правильно» | Когда что-то не работает |
-| `cleanup.bat` | Удалить старые логи, остановить зависшие процессы, сбросить конфиги | Раз в неделю или перед важным эфиром |
-
-Окно `run_all_servers.bat` должно оставаться открытым весь эфир. Закрыл окно — серверы остановились.
-
-## Установка на новый ПК «по шагам»
-
-1. Скопировать всю папку проекта на новый ПК. Куда угодно: `D:\Ya-translate-extension`, `C:\Tools\...` — скрипты находят свой путь сами.
-2. Установить три внешние программы:
-   - **Python 3.11–3.13** с https://www.python.org/downloads/. На первом экране установки поставить галочку **Add to PATH**. Python 3.14 пока не поддерживается.
-   - **Yandex Browser** с https://browser.yandex.ru.
-   - **Ollama** с https://ollama.com/download.
-3. Запустить `setup_windows.bat`. Скрипт сам:
-   - создаст `config.local.ps1` из примера;
-   - создаст виртуальные окружения Python для `translator-server` и `subtitle-cdp-reader`;
-   - поставит все зависимости;
-   - проверит Ollama и Yandex Browser;
-   - **спросит «скачать модель `translategemma:12b` (~7 ГБ)?»** и сам её загрузит, если ответить `Y`.
-4. Запустить `doctor.bat` — он покажет, всё ли готово. На каждой строке либо `[OK]`, либо подсказка, что сделать.
-5. Загрузить расширение в Yandex Browser один раз:
-   - открыть `chrome://extensions`,
-   - включить **Developer mode**,
-   - нажать **Load unpacked**,
-   - выбрать папку `extension`.
-6. Запустить `run_all_servers.bat`. Когда увидишь `Translator API: [OK]`, `CDP reader: [OK]`, `Yandex CDP: [OK]` — система готова к эфиру.
-
-Виртуальные окружения `.venv` копировать с одного ПК на другой **не нужно** — `setup_windows.bat` создаст их заново.
-
-## Нормальный порядок запуска перед эфиром
-
-1. Запустить `run_all_servers.bat`.
-2. Если Яндекс уже открыт без debug-порта, launcher спросит:
-   ```
-   Close all Yandex Browser windows now and restart with CDP? Type Y to continue
-   ```
-   Ответить `Y`.
-3. Дождаться строки `Yandex CDP is ready: http://127.0.0.1:9222/json`.
-4. Открыть видео в новом окне Яндекс Браузера, включить субтитры.
-5. Если перед этим был «прогрев» модели — открыть настройки расширения и нажать **Сбросить память переводчика сейчас**, чтобы реальный эфир пошёл с чистого листа.
-
-## Настройки расширения
-
-Открываются на странице `chrome://extensions` → значок расширения → **Details** → **Extension options**.
-
-Полезные опции:
-
-- **Стиль перевода** — `красивый` (литературный, по умолчанию) или `короткий` (близко по длине к английскому, лучше для overlay).
-- **Сброс памяти при паузе, мс** — через сколько секунд тишины автоматически чистится контекст переводчика. По умолчанию 15 000 мс (15 секунд).
-- **Сбросить память переводчика сейчас** — кнопка ручного сброса. Удобно нажать перед началом реального эфира после прогрева модели.
-- **Context profile** — `Tech keynote` (для конференций и технических презентаций), `General` (для обычной речи), `Politics / news` (для новостей).
-- **Ollama model** — какую модель использовать. По умолчанию `translategemma:12b`.
-
-## Адреса для проверки
-
-| Что | URL |
+| Folder | What's inside |
 |---|---|
-| Здоровье переводчика | http://127.0.0.1:8765/health |
-| Здоровье CDP reader | http://127.0.0.1:8766/health |
-| Yandex CDP | http://127.0.0.1:9222/json |
-| Overlay для vMix/OBS | http://127.0.0.1:8765/overlay?font_size=42&bottom=7&max_width=88&opacity=0.72&hide_after_ms=6000 |
+| `extension/` | Browser extension (Manifest V3). Reads subtitles from the page, segments live text, sends to backend, draws the overlay. |
+| `translator-server/` | Local FastAPI backend on `127.0.0.1:8765`. Handles glossary, prompt, output cleanup, caches and logs. |
+| `subtitle-cdp-reader/` | Tiny FastAPI bridge on `:8766` that reads subtitles via Chrome DevTools Protocol when the page hides them behind a closed shadow root. |
+| `scripts/` | Windows setup, doctor, cleanup and launcher PowerShell scripts. |
+| `tools/` | Log analyzer with live-translation quality metrics. |
+| `docs/` | Architecture and metrics documentation. |
 
-В overlay-ссылке `hide_after_ms=6000` означает: блок скрывается через 6 секунд без нового перевода.
+### Translation model
 
-## Локальный конфиг
+Default model is **`translategemma:12b`** (Google's translation-specialized variant of Gemma, ~7 GB). Pulled automatically by `setup_windows.bat`. Runs in Ollama on the local machine.
 
-Файл `config.local.ps1` создаётся автоматически из `config.local.example.ps1` при первом запуске `setup_windows.bat`. Обычно его не надо трогать.
+Two prompt styles are user-selectable from the extension options:
 
-Когда стоит правка:
+- **`красивый` / polished** — literary, natural Russian, slightly longer than the English source (default).
+- **`короткий` / concise** — close to source length, optimized for two-line overlay readability.
 
-```powershell
-$ProjectConfig = @{
-  OllamaModelsPath = "D:\AI\Ollama"          # если модели Ollama на другом диске
-  OllamaExe = ""                             # если ollama.exe в нестандартном месте
-  YandexBrowserPath = ""                     # если Yandex Browser в нестандартном месте
-  DefaultOllamaModel = "translategemma:12b"
-  TranslatorPort = 8765                      # менять не рекомендую
-  CdpReaderPort = 8766                       # менять не рекомендую
-  YandexDebugPort = 9222
-  AutoCloseYandex = $false                   # true = закрывать Яндекс без вопроса
-}
+### Live-text stabilisation
+
+Live subtitles arrive as a sliding window that updates every few hundred milliseconds. To avoid translating each intermediate state, the extension:
+
+- waits for a short pause before committing;
+- commits faster on natural sentence boundaries (`.!?`);
+- holds suspicious short fragments;
+- drops weak fragment endings (`and`, `to`, `the`, `with`…);
+- de-duplicates against a 45-second window of recently sent phrases;
+- resets the segmenter, queue and translator memory after 15 seconds of silence (configurable).
+
+Output post-processing strips:
+
+- placeholder leaks like `[name of company]`, `{placeholder}`;
+- XML-like tags the model occasionally emits (`<unk>`, `<translation>`);
+- unbalanced quotes / brackets;
+- orphan lowercase English words at the start of the Russian line.
+
+A session-scoped name cache stabilises proper nouns: if the model translates a name one way the first time, the same Russian spelling is preferred for the rest of the broadcast.
+
+---
+
+## Quick start (Windows)
+
+1. Copy the folder anywhere.
+2. Install three tools manually:
+   - [Python 3.11–3.13](https://www.python.org/downloads/) (tick *Add to PATH*).
+   - [Yandex Browser](https://browser.yandex.ru).
+   - [Ollama](https://ollama.com/download).
+3. Run `setup_windows.bat`. It creates venvs, installs deps, and offers to download `translategemma:12b` (~7 GB).
+4. Run `doctor.bat` to verify everything is green.
+5. Load the extension in Yandex Browser: `chrome://extensions` → Developer mode → Load unpacked → pick the `extension/` folder.
+6. Run `run_all_servers.bat` and start a video with subtitles enabled.
+
+Detailed Russian instructions: **[README.ru.md](README.ru.md)**.
+
+### Helper scripts
+
+| Script | Purpose | When to run |
+|---|---|---|
+| `setup_windows.bat` | First-time install: venvs, deps, model download | Once per machine |
+| `run_all_servers.bat` | Start translator, CDP reader, Yandex with debug port | Before each broadcast |
+| `doctor.bat` | Read-only health check with actionable hints | When something seems off |
+| `cleanup.bat` | Interactive cleanup of logs, stuck processes, configs | Weekly maintenance |
+
+---
+
+## Endpoints
+
+| URL | What it is |
+|---|---|
+| `http://127.0.0.1:8765/health` | Translator server health |
+| `http://127.0.0.1:8765/translate` (POST) | Main translation endpoint |
+| `http://127.0.0.1:8765/current` | Latest translation, polled by overlay |
+| `http://127.0.0.1:8765/overlay` | HTML overlay page (use as a browser source in vMix / OBS) |
+| `http://127.0.0.1:8765/context/reset` (POST) | Wipe translator session memory |
+| `http://127.0.0.1:8766/health` | CDP reader health |
+| `http://127.0.0.1:9222/json` | Yandex Browser debug port |
+
+Overlay URL accepts query parameters: `font_size`, `bottom`, `max_width`, `opacity`, `hide_after_ms`, `poll_ms`, `min_display_ms`, `slide_ms`.
+
+Example:
+
+```
+http://127.0.0.1:8765/overlay?font_size=42&bottom=7&max_width=88&opacity=0.72&hide_after_ms=6000
 ```
 
-Если меняешь `TranslatorPort` или `CdpReaderPort`, такой же адрес надо указать в настройках расширения (`Backend URL`, `CDP reader URL`).
+---
 
-## Как понять, что пошло не так
+## Performance on the latest run
 
-**Первое, что нажать при любой проблеме — `doctor.bat`.** Он покажет, что не на месте, и даст конкретную подсказку.
+Measured from `logs/translations_20260516_132417.jsonl` — 241 translations of a live Google I/O keynote, model `translategemma:12b`, prompt style `concise`, on i7-12700K + RTX 4070 Ti + 64 GB RAM.
 
-Если `doctor.bat` всё показал `[OK]`, но проблема осталась — смотри ниже типовые случаи.
+### Latency (ms)
 
-### Yandex CDP port: NOT OPEN
+| Stage | min | median | p90 | p95 | p99 | max |
+|---|---|---|---|---|---|---|
+| Model only | 527 | **1 312** | 1 879 | 1 955 | 2 391 | 2 688 |
+| English subtitle → overlay shown | 592 | **1 766** | 3 441 | 4 101 | 4 934 | 7 558 |
+| Commit → overlay shown | 533 | 1 367 | 1 900 | 2 031 | 2 397 | 2 693 |
 
-Яндекс запущен не через launcher. Что сделать: закрыть все окна Яндекс Браузера, запустить `run_all_servers.bat`, ответить `Y` на вопрос. Проверить http://127.0.0.1:9222/json — должен открыться JSON.
+### Quality (live-translation scorer, 0–100)
 
-### CDP reader возвращает 503
+| Metric | Value |
+|---|---|
+| Records / errors | 241 / 0 |
+| Average Russian-to-English length ratio | **1.15** (target ≤ 1.20) |
+| Verbose lines (ratio > 1.35) | 17% |
+| Placeholder leaks | 0 |
+| Unbalanced quotes / brackets | 0 |
+| CJK / Hebrew / Arabic artifacts | 0 |
+| Weak fragment endings sent to model | 0 |
+| Proper-noun inconsistencies | 6 |
+| Sliding-window duplicate inputs | 0 |
+| **Technical live score** | **97.5 / 100** |
 
-Почти всегда причина — Yandex с debug-портом не запущен. Лечится тем же сценарием, что и выше.
+### Recommended video delay
 
-### В `8766/health` показывает tabs = 0
+To keep the Russian overlay aligned with picture-and-sound, add a ~5 second delay to the video signal. This covers 99% of all translations.
 
-CDP reader работает, но не видит вкладок Яндекса. Открыть видео именно в окне Яндекса, которое запустил launcher (не в стороннем).
+| Coverage | Delay |
+|---|---|
+| 90% | 3.5 s |
+| 95% | 4.5 s |
+| **99%** | **5 s (recommended)** |
+| 100% | 7 s |
 
-### Overlay в vMix показывает старый текст
+The remaining ~1 second of total mouth-to-overlay lag is Yandex's own ASR latency (which we don't control).
 
-Параметр `hide_after_ms` в URL задаёт, через сколько секунд скрывать блок. Например `hide_after_ms=4000` — спрятать через 4 секунды.
+---
 
-### Накопилось много логов, диск забит
+## Features at a glance
 
-Запустить `cleanup.bat` → ответить `Y` на «удалить все логи» или `N`+`Y` на «удалить старше 7 дней». Конфиги при этом не тронутся.
+- 🔒 **Fully local.** No cloud APIs, no telemetry, no account.
+- 🧠 **Translation-specialized model** (`translategemma:12b`), not a general chat LLM.
+- 📚 **Glossary** with ASR corrections and product-name preservation (Google I/O, WWDC, MS Build vocabulary built-in).
+- 🎚 **Two prompt styles** for literary vs subtitle-optimised output.
+- 🧹 **Output filter** removes placeholders, broken quotes, model tags, orphan English prefixes.
+- 🧷 **Session name cache** keeps proper nouns stable across a broadcast.
+- ⏸ **Smart pause handling**: undelivered fragments are dropped after 5 s of silence; full context reset after 15 s.
+- 🔘 **Manual memory reset** button in the extension options for the warmup → broadcast transition.
+- 📊 **Quality metrics** scorer in `tools/evaluate_translation_logs.py`.
+- 🖥 **vMix / OBS ready** via `/overlay` HTML browser source.
 
-### После прогрева модели в реальном эфире вижу куски с прогрева
+---
 
-Открыть настройки расширения, нажать **Сбросить память переводчика сейчас**. Или подождать 15 секунд тишины — память сбросится автоматически.
+## License
 
-### Перенёс проект с одного ПК на другой, и `run_all_servers.bat` ругается на venv
+MIT (see `LICENSE` if present).
 
-Это нормально — `.venv` нельзя копировать между ПК. Запусти `setup_windows.bat` на новом ПК, он пересоздаст окружения.
+## Acknowledgements
 
-## После изменений в коде расширения
-
-`chrome://extensions` → у нужного расширения нажать **Update** (или круглую стрелочку «обновить»). Перезагружать страницу с видео не обязательно.
-
-## Что лежит в папке `logs/`
-
-- `translations_YYYYMMDD_HHMMSS.jsonl` — детальный лог переводов одного запуска. Используется для метрик качества: [docs/translation-quality-metrics.md](docs/translation-quality-metrics.md).
-- `translator-server.out.log` / `.err.log`, `cdp-reader.out.log` / `.err.log` — текущие server-логи.
-
-Лог-файлов накапливается много. Раз в неделю прогоняй `cleanup.bat`.
-
-## Что в этом проекте делать **не нужно**
-
-- Копировать `.venv` между ПК — `setup_windows.bat` сам создаст.
-- Менять порты 8765/8766/9222 — если меняешь, надо синхронно править настройки расширения.
-- Запускать что-то из `translator-server\` или `subtitle-cdp-reader\` напрямую — для запуска есть `run_all_servers.bat`.
-- Удалять `config.example.yaml` и `config.local.example.ps1` — это шаблоны, по ним восстанавливаются настройки в `cleanup.bat`.
+- [Ollama](https://ollama.com/) for the local LLM runtime.
+- Google's TranslateGemma checkpoint, packaged for Ollama.
+- Yandex Browser team for the in-browser live ASR that this project relies on as a source.
