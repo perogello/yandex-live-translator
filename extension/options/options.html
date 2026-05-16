@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Yandex Live Subtitles Translator</title>
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <main>
+      <h1>Yandex Live Subtitles Translator</h1>
+
+      <section>
+        <label>
+          Backend URL
+          <input id="backendUrl" type="url">
+        </label>
+        <label>
+          Ollama model
+          <select id="ollamaModel">
+            <option value="translategemma:12b">translategemma:12b</option>
+            <option value="Tritem/TowerInstruct-13B-v0.1:latest">TowerInstruct-13B-v0.1</option>
+            <option value="aya-expanse:8b">aya-expanse:8b</option>
+            <option value="gemma3:12b">gemma3:12b</option>
+            <option value="llama3.1:8b">llama3.1:8b</option>
+            <option value="qwen2.5:3b">qwen2.5:3b</option>
+            <option value="qwen2.5:1.5b">qwen2.5:1.5b</option>
+          </select>
+        </label>
+        <label>
+          Context profile
+          <select id="contextProfile">
+            <option value="tech_keynote">Tech keynote</option>
+            <option value="general">General</option>
+            <option value="politics_news">Politics / news</option>
+          </select>
+        </label>
+        <label>
+          Стиль перевода
+          <select id="promptStyle">
+            <option value="красивый">Красивый (литературный, чуть длиннее)</option>
+            <option value="короткий">Короткий (близко к длине английского)</option>
+          </select>
+        </label>
+        <label>
+          CDP reader URL
+          <input id="cdpReaderUrl" type="url">
+        </label>
+        <label><input id="enableCdpFallback" type="checkbox"> Enable CDP fallback</label>
+        <label><input id="enabled" type="checkbox"> Enable translation</label>
+        <label><input id="overlayEnabled" type="checkbox"> Show overlay</label>
+        <label><input id="debug" type="checkbox"> Debug panel</label>
+        <label><input id="mockMode" type="checkbox"> Extension mock mode</label>
+      </section>
+
+      <section>
+        <label><input id="showTranslated" type="checkbox"> Show RU</label>
+        <label><input id="showOriginal" type="checkbox"> Show EN</label>
+        <label>
+          Font size
+          <input id="fontSize" type="number" min="16" max="72">
+        </label>
+        <label>
+          Bottom offset, vh
+          <input id="bottomOffset" type="number" min="1" max="30">
+        </label>
+        <label>
+          Max width, vw
+          <input id="maxWidth" type="number" min="40" max="96">
+        </label>
+        <label>
+          Background opacity
+          <input id="backgroundOpacity" type="number" min="0" max="1" step="0.05">
+        </label>
+      </section>
+
+      <section>
+        <label>
+          Debounce, ms
+          <input id="debounceMs" type="number" min="100" max="3000">
+        </label>
+        <label>
+          Hold last subtitle, ms
+          <input id="holdLastSubtitleMs" type="number" min="0" max="30000">
+        </label>
+        <label>
+          Hide after silence, ms
+          <input id="hideAfterSilenceMs" type="number" min="1000" max="60000">
+        </label>
+      </section>
+
+      <section>
+        <label>
+          Сброс памяти при паузе, мс
+          <input id="contextResetGapMs" type="number" min="4000" max="120000" step="1000">
+        </label>
+        <button id="resetContextBtn" type="button">Сбросить память переводчика сейчас</button>
+        <p style="font-size:12px;color:#666;margin:4px 0 0;">
+          Нажми перед началом реального эфира после прогрева.
+          Очищает контекст модели, словарь имён, очередь и сегментацию.
+        </p>
+      </section>
+
+      <button id="save">Save</button>
+      <span id="status"></span>
+    </main>
+    <script src="../src/settings.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

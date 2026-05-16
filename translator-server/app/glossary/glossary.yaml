@@ -1,0 +1,503 @@
+profiles:
+  tech_keynote:
+    keep:
+      - API
+      - SDK
+      - REST API
+      - GraphQL
+      - JSON
+      - YAML
+      - HTTP
+      - WebSocket
+      - OAuth
+      - SSO
+      - Apple Intelligence
+      - iOS
+      - iPadOS
+      - macOS
+      - watchOS
+      - visionOS
+      - Xcode
+      - Swift
+      - SwiftUI
+      - UIKit
+      - AppKit
+      - ARKit
+      - RealityKit
+      - Core ML
+      - Metal
+      - App Store
+      - App Store Connect
+      - TestFlight
+      - Safari
+      - FaceTime
+      - CarPlay
+      - Messages
+      - Photos
+      - Camera
+      - Lock Screen
+      - Control Center
+      - Notification Center
+      - Live Activities
+      - Shortcuts
+      - Widgets
+      - Liquid Glass
+      - tab bar
+      - spatial scene
+      - contact poster
+      - cinematic mode
+      - portrait mode
+      - Google I/O
+      - Google Search
+      - Search Live
+      - AI Mode
+      - AI Overviews
+      - Google Lens
+      - Project Astra
+      - Project Mariner
+      - Query Fan-Out
+      - shopping graph
+      - agentic checkout
+      - Flash
+      - Veo
+      - Veo 3
+      - Jules
+      - TPU
+      - LMSYS Chatbot Arena
+      - Chatbot Arena
+      - Gemini
+      - Gemini API
+      - Gemini Nano
+      - Pixel 9
+      - Pixel 9 Pro
+      - Pixel 9 Pro XL
+      - Pixel 9 Pro Fold
+      - Pixel Watch 3
+      - Pixel Buds Pro 2
+      - Tensor G4
+      - Super Actua
+      - Super Actua Flex display
+      - Satellite SOS
+      - Fitbit
+      - Peloton
+      - NFL Sunday Ticket
+      - YouTube TV
+      - Google Home
+      - Google Nest
+      - Nest Mini
+      - Nest Hub
+      - Chromecast
+      - Stadia
+      - Baratunde Thurston
+      - Android
+      - Android Studio
+      - Jetpack Compose
+      - Firebase
+      - Firebase Studio
+      - Google AI Studio
+      - Vertex AI
+      - TensorFlow
+      - Chrome
+      - ChromeOS
+      - Flutter
+      - Kubernetes
+      - Microsoft Build
+      - Copilot
+      - GitHub Copilot
+      - Windows
+      - Azure
+      - Visual Studio
+      - Visual Studio Code
+      - VS Code
+      - GitHub
+      - .NET
+      - C#
+      - TypeScript
+      - JavaScript
+      - Python
+      - Node.js
+      - OpenAI
+      - ChatGPT
+      - Codex
+      - Apps SDK
+      - Model Context Protocol
+      - MCP
+      - GPT
+      - LLM
+    translate:
+      developer: "разработчик"
+      developers: "разработчики"
+      keynote: "презентация"
+      app: "приложение"
+      application: "приложение"
+      framework: "фреймворк"
+      feature: "функция"
+      features: "функции"
+      privacy: "конфиденциальность"
+      performance: "производительность"
+      latency: "задержка"
+      throughput: "пропускная способность"
+      inference: "инференс"
+      on-device inference: "инференс на устройстве"
+      on device: "на устройстве"
+      cloud: "облако"
+      cloud-native: "облачно-нативный"
+      deployment: "развертывание"
+      deploy: "развернуть"
+      rollout: "постепенное внедрение"
+      preview: "предварительная версия"
+      beta: "бета-версия"
+      release candidate: "релиз-кандидат"
+      toolchain: "набор инструментов"
+      build tools: "инструменты сборки"
+      debugging: "отладка"
+      observability: "наблюдаемость"
+      tracing: "трассировка"
+      benchmark: "бенчмарк"
+      token: "токен"
+      tokens: "токены"
+      context window: "контекстное окно"
+      multimodal: "мультимодальный"
+      agent: "агент"
+      agents: "агенты"
+      agentic: "агентный"
+      agentic capabilities: "агентные возможности"
+      agentic checkout: "агентная оплата"
+      text to speech: "преобразование текста в речь"
+      text-to-speech: "преобразование текста в речь"
+      speech to text: "преобразование речи в текст"
+      speech-to-text: "преобразование речи в текст"
+      Demis: "Демис"
+      Chatbot Arena leaderboard: "рейтинг Chatbot Arena"
+      LMSYS Chatbot Arena leaderboard: "рейтинг LMSYS Chatbot Arena"
+      AI Mode: "AI Mode"
+      AI Overviews: "AI Overviews"
+      Search Live: "Search Live"
+      query fan-out: "query fan-out"
+      shopping graph: "Shopping Graph"
+      visual search: "визуальный поиск"
+      multimodality: "мультимодальность"
+      try-on: "примерка"
+      virtual try-on: "виртуальная примерка"
+      camera roll: "медиатека"
+      browsable mosaic: "просматриваемая мозаика"
+      low pile: "низкий ворс"
+      washable rug: "моющийся ковер"
+      workflow: "рабочий процесс"
+      workflows: "рабочие процессы"
+      Lock Screen: "экран блокировки"
+      Control Center: "Пункт управления"
+      Notification Center: "Центр уведомлений"
+      Live Activities: "Live Activities"
+      Shortcuts: "Команды"
+      Widgets: "виджеты"
+      Liquid Glass: "Liquid Glass"
+      tab bar: "панель вкладок"
+      spatial scene: "пространственная сцена"
+      contact poster: "постер контакта"
+      cinematic mode: "режим «Киноэффект»"
+      portrait mode: "портретный режим"
+      aspect ratio: "соотношение сторон"
+      timer: "таймер"
+      timers: "таймеры"
+      library: "медиатека"
+      collections: "коллекции"
+      favorites: "избранное"
+      albums: "альбомы"
+      search: "поиск"
+      authentication: "аутентификация"
+      authorization: "авторизация"
+      passkey: "ключ доступа"
+      sandbox: "песочница"
+      container: "контейнер"
+      cluster: "кластер"
+      node: "узел"
+      pod: "pod"
+      control plane: "control plane"
+      invisible ink: "невидимые чернила"
+      black light: "ультрафиолетовая лампа"
+      hairdryer: "фен"
+      lava lamp: "лава-лампа"
+      lava lamps: "лава-лампы"
+    asr_corrections:
+      gemin i: "Gemini"
+      gym and i: "Gemini"
+      gem and i: "Gemini"
+      jim and i: "Gemini"
+      germini: "Gemini"
+      gemmini: "Gemini"
+      scottder hunt: "scavenger hunt"
+      scotter hunt: "scavenger hunt"
+      pixel nine pro xl: "Pixel 9 Pro XL"
+      pixel nine pro fold: "Pixel 9 Pro Fold"
+      pixel nine profold: "Pixel 9 Pro Fold"
+      pixel nine pro: "Pixel 9 Pro"
+      pixel nine phones: "Pixel 9 phones"
+      pixel ninines: "Pixel 9 phones"
+      pixel nine: "Pixel 9"
+      pixel a pro: "Pixel 8 Pro"
+      pixelate pro: "Pixel 8 Pro"
+      pixelate: "Pixel 8"
+      pixel aid: "Pixel 8"
+      pixel aids: "Pixel 8's"
+      pixel eight pro: "Pixel 8 Pro"
+      pixel eight: "Pixel 8"
+      pixel wath three: "Pixel Watch 3"
+      pixel watch threes: "Pixel Watch 3's"
+      pixel watch three: "Pixel Watch 3"
+      tensorg three: "Tensor G3"
+      tensor g three: "Tensor G3"
+      tensor g four: "Tensor G4"
+      tens or g four: "Tensor G4"
+      gemmin ni nano: "Gemini Nano"
+      gemmini nano: "Gemini Nano"
+      satellite soos: "Satellite SOS"
+      super actual flex display: "Super Actua Flex display"
+      super actual: "Super Actua"
+      pixel budds pro two: "Pixel Buds Pro 2"
+      pixel buds pro two: "Pixel Buds Pro 2"
+      buds pro two: "Buds Pro 2"
+      fitbits: "Fitbit's"
+      germini aapi: "Gemini API"
+      gemmini cod assist: "Gemini Code Assist"
+      gemini two point five: "Gemini 2.5"
+      two five pro: "2.5 Pro"
+      two point five pro: "2.5 Pro"
+      ai mode: "AI Mode"
+      power ai mode: "power AI Mode"
+      ai mod: "AI Mode"
+      ai modus: "AI Mode"
+      ai mode is search: "AI Mode is search"
+      power ai overviews: "power AI Overviews"
+      ai moda: "AI Mode"
+      ai modes: "AI Mode's"
+      ai module: "AI Mode"
+      aio views: "AI Overviews"
+      aio overviews: "AI Overviews"
+      aio abuse: "AI Overviews"
+      aio: "AI Overviews"
+      ai overview: "AI Overviews"
+      google sear: "Google Search"
+      project aster: "Project Astra"
+      project astrak: "Project Astra"
+      project mariners: "Project Mariner"
+      project mariner's: "Project Mariner's"
+      project star line: "Project Starline"
+      project starline: "Project Starline"
+      vo three: "Veo 3"
+      view three: "Veo 3"
+      vo: "Veo"
+      jewels: "Jules"
+      task and jewels: "Jules"
+      task and Jules: "Jules"
+      end to an ai search: "end-to-end AI search"
+      tpu: "TPU"
+      traumatically faster: "dramatically faster"
+      geminized native audio: "Gemini native audio"
+      geminized interactive space: "Gemini interactive space"
+      access to twos: "access to tools"
+      mcp twos: "MCP tools"
+      twos: "tools"
+      a genetic capabilities: "agentic capabilities"
+      a agenta: "agentic"
+      agenta: "agentic"
+      la marine elite board: "Chatbot Arena leaderboard"
+      lm arena leaderboard: "LMSYS Chatbot Arena leaderboard"
+      l m arena leaderboard: "LMSYS Chatbot Arena leaderboard"
+      la marine elite: "Chatbot Arena"
+      demis: "Demis"
+      artificial pokemon intelligence: "artificial general intelligence"
+      sunda: "Sundar"
+      here's less: "here's Liz"
+      google lands: "Google Lens"
+      browserable: "browsable"
+      trion: "try-on"
+      camera role: "camera roll"
+      hydrogen beroxide: "hydrogen peroxide"
+      beroxide: "peroxide"
+      pre captured: "pre-captured"
+      precaptured: "pre-captured"
+      white camera: "wide camera"
+      white variety: "wide variety"
+      visual queue: "visual cue"
+      state - of - the - ar: "state-of-the-art"
+      state - of - their art: "state-of-the-art"
+      glancable ui: "glanceable UI"
+      fire base: "Firebase"
+      firebased: "Firebase"
+      androids studio: "Android Studio"
+      x code: "Xcode"
+      swift you eye: "SwiftUI"
+      app store connect: "App Store Connect"
+      lockscreen: "Lock Screen"
+      lock screen: "Lock Screen"
+      control centre: "Control Center"
+      control center: "Control Center"
+      life activities: "Live Activities"
+      live activity: "Live Activities"
+      liquid class: "Liquid Glass"
+      liquid gloss: "Liquid Glass"
+      liquid glass controls: "Liquid Glass controls"
+      spatial seen: "spatial scene"
+      special scene: "spatial scene"
+      contact posters: "contact posters"
+      cinematic moat: "cinematic mode"
+      cinema mode: "cinematic mode"
+      portrait moat: "portrait mode"
+      car play: "CarPlay"
+      face time: "FaceTime"
+      visual studio coat: "Visual Studio Code"
+      vs coat: "VS Code"
+      get hub: "GitHub"
+      gethub: "GitHub"
+      co pilot: "Copilot"
+      azure ai foundry: "Azure AI Foundry"
+      cube ern estes: "Kubernetes"
+      kuber net ease: "Kubernetes"
+      coopernetties: "Kubernetes"
+      open ai: "OpenAI"
+      chat g p t: "ChatGPT"
+      model contacts protocol: "Model Context Protocol"
+      contacts window: "context window"
+      on device inference: "on-device inference"
+      note js: "Node.js"
+      type script: "TypeScript"
+      hdr plius: "HDR Plus"
+      plius: "Plus"
+      procontrol: "Pro Control"
+      pro control: "Pro Control"
+      glancecle ui: "glanceable UI"
+      glanceable ui: "glanceable UI"
+      baritonay thurston: "Baratunde Thurston"
+      baritonay therston: "Baratunde Thurston"
+      barat tunde: "Baratunde Thurston"
+      baratun day: "Baratunde"
+      baratun de: "Baratunde"
+      bear at tunde: "Baratunde"
+      google home: "Google Home"
+      nest mini: "Nest Mini"
+      nest hub: "Nest Hub"
+      chrome cast: "Chromecast"
+      stadia controller: "Stadia controller"
+    output_corrections:
+      - when_source: "Pixel 9 Pro Fold"
+        wrong: "Pixel Nine Profold"
+        right: "Pixel 9 Pro Fold"
+      - when_source: "Pixel 9 Pro Fold"
+        wrong: "Pixel Nine Pro Fold"
+        right: "Pixel 9 Pro Fold"
+      - when_source: "Pixel 9 Pro XL"
+        wrong: "Pixel Nine Pro XL"
+        right: "Pixel 9 Pro XL"
+      - when_source: "Pixel 9 Pro"
+        wrong: "Pixel Nine Pro"
+        right: "Pixel 9 Pro"
+      - when_source: "Pixel 9"
+        wrong: "Pixel Nine"
+        right: "Pixel 9"
+      - when_source: "Tensor G4"
+        wrong: "тензор G с четырьмя"
+        right: "Tensor G4"
+      - when_source: "Tensor G4"
+        wrong: "тензора G с четырьмя"
+        right: "Tensor G4"
+      - when_source: "Gemini Nano"
+        wrong: "Gemmini на базе технологии Nano"
+        right: "Gemini Nano"
+      - when_source: "Gemini Nano"
+        wrong: "Gemmini Nano"
+        right: "Gemini Nano"
+      - when_source: "Super Actua"
+        wrong: "Super Retina"
+        right: "Super Actua"
+      - when_source: "Peloton"
+        wrong: "Palatine"
+        right: "Peloton"
+      - when_source: "Gemini"
+        wrong: "Близнецы"
+        right: "Gemini"
+      - when_source: "Gemini"
+        wrong: "Близнецов"
+        right: "Gemini"
+      - when_source: "text to speech"
+        wrong: "преобразования речи в текст"
+        right: "преобразования текста в речь"
+      - when_source: "text to speech"
+        wrong: "преобразование речи в текст"
+        right: "преобразование текста в речь"
+      - when_source: "speech to text"
+        wrong: "преобразования текста в речь"
+        right: "преобразования речи в текст"
+      - when_source: "speech to text"
+        wrong: "преобразование текста в речь"
+        right: "преобразование речи в текст"
+      - when_source: "Demis"
+        wrong: "Дем"
+        right: "Демис"
+      - when_source: "Demis"
+        wrong: "Деми"
+        right: "Демис"
+      - when_source: "Flash"
+        wrong: "Флэш"
+        right: "Flash"
+      - when_source: "black light"
+        wrong: "черная лампа"
+        right: "ультрафиолетовая лампа"
+      - when_source: "black light"
+        wrong: "черной лампой"
+        right: "ультрафиолетовой лампой"
+      - when_source: "black light"
+        wrong: "черную лампу"
+        right: "ультрафиолетовую лампу"
+      - when_source: "hairdryer"
+        wrong: "феникс"
+        right: "фен"
+      - when_source: "Baratunde"
+        wrong: "Барионай Торстон"
+        right: "Baratunde Thurston"
+      - when_source: "Baratunde"
+        wrong: "Барионай"
+        right: "Baratunde"
+      - when_source: "Baratunde"
+        wrong: "Барат Тунде"
+        right: "Baratunde Thurston"
+      - when_source: "Baratunde"
+        wrong: "Барат"
+        right: "Baratunde"
+      - when_source: "Baratunde"
+        wrong: "Баратундэ"
+        right: "Baratunde"
+      - when_source: "Google Home"
+        wrong: "Гугл Хоум"
+        right: "Google Home"
+      - when_source: "Nest Mini"
+        wrong: "Нест Мини"
+        right: "Nest Mini"
+      - when_source: "Chromecast"
+        wrong: "Хромкаст"
+        right: "Chromecast"
+      - when_source: "Stadia"
+        wrong: "Стадиа"
+        right: "Stadia"
+      - when_source: "Stadia"
+        wrong: "Стадия"
+        right: "Stadia"
+    asr_contextual:
+      - wrong: "palatine"
+        right: "Peloton"
+        when: ["workout", "workouts", "fitness", "classes", "class", "running", "training", "exercise"]
+      - wrong: "drugs"
+        right: "rugs"
+        when: ["rug", "living room", "couch", "washable", "low pile", "dress", "shopping", "go-to"]
+      - wrong: "drug"
+        right: "rug"
+        when: ["rug", "living room", "couch", "washable", "low pile", "dress", "shopping", "go-to"]
+      - wrong: "rants"
+        right: "brands"
+        when: ["rug", "rugs", "go-to", "modern option", "shopping"]
+      - wrong: "house styles"
+        right: "how styles"
+        when: ["look on you", "try-on", "clothes"]
+      - wrong: "camera role"
+        right: "camera roll"
+        when: ["picture", "photo", "camera"]

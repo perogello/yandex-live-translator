@@ -1,0 +1,58 @@
+{
+  "manifest_version": 3,
+  "name": "Yandex Live Subtitles Translator",
+  "version": "0.1.0",
+  "description": "Translates Yandex Browser live subtitles through a local backend.",
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/injected.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/bootstrap.js",
+        "src/settings.js",
+        "src/debug.js",
+        "src/overlay.js",
+        "src/subtitle-reader.js",
+        "src/segmenter.js",
+        "src/translator-client.js",
+        "src/content.js"
+      ],
+      "css": [
+        "styles/overlay.css"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "options_page": "options/options.html",
+  "action": {
+    "default_title": "Yandex Live Subtitles Translator"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/injected.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

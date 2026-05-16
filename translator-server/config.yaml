@@ -1,0 +1,46 @@
+server:
+  host: "127.0.0.1"
+  port: 8765
+
+translation:
+  backend: "ollama"
+
+ollama:
+  base_url: "http://127.0.0.1:11434"
+  model: "translategemma:12b"
+  temperature: 0.1
+  num_ctx: 2048
+  num_predict: 140
+  timeout_sec: 20
+  keep_alive: "10m"
+  context_items: 6
+  # Стиль перевода задаётся в расширении (Options -> "Стиль перевода").
+  # Это значение используется только если расширение не передало стиль.
+  prompt_style: "красивый"
+
+ct2_opus:
+  model_path: "D:/AI/Models/opus-mt-en-ru-ctranslate2"
+  device: "cpu"
+  compute_type: "int8"
+  inter_threads: 1
+  intra_threads: 4
+  max_input_chars: 500
+
+ct2_m2m:
+  model_path: "D:/AI/Models/m2m100"
+  device: "cpu"
+  compute_type: "int8"
+  source_lang: "en"
+  target_lang: "ru"
+
+runtime:
+  cache_size: 1024
+  max_input_chars: 1200
+  request_timeout_sec: 20
+  max_concurrent_translations: 1
+  log_translations: true
+  translation_log_path: "logs/translations.jsonl"
+  translation_log_per_run: true
+  warmup_on_start: true
+  warmup_timeout_sec: 45
+  warmup_text: "Hello, welcome to the keynote."

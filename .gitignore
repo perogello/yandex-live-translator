@@ -1,0 +1,34 @@
+# Локальные настройки пользователя (могут содержать пути к личным папкам)
+config.local.ps1
+config.local.ps1.bak
+
+# Server config: оставляем в репо только example, реальный конфиг может быть
+# подкручен под конкретный ПК и иметь локальные пути
+translator-server/config.yaml.bak
+
+# Логи переводов: содержат текст просмотренных трансляций
+logs/*.jsonl
+logs/*.log
+logs/test/
+
+# Python виртуальные окружения (большие, генерятся через setup_windows.bat)
+translator-server/.venv/
+subtitle-cdp-reader/.venv/
+
+# Python кэши
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE / OS мусор
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Локальные настройки Claude Code
+.claude/
+
+# Бэкапы от cleanup.bat
+*.bak
