@@ -121,6 +121,7 @@ class OllamaTranslator(Translator):
         cleaned = clean_ollama_response(translation, source=corrected_text)
         cleaned = self.glossary.apply_output_corrections(corrected_text, cleaned, selected_profile)
         cleaned = align_subtitle_punctuation(corrected_text, cleaned)
+        cleaned = self._capitalize_after_prev_sentence_end(cleaned)
         self._update_name_cache(corrected_text, cleaned)
         self._remember(corrected_text, cleaned)
         return TranslationResult(
@@ -357,6 +358,24 @@ class OllamaTranslator(Translator):
             self.history[-1] = (source_value, translation_value)
             return
         self.history.append((source_value, translation_value))
+
+    def _capitalize_after_prev_sentence_end(self, value: str) -> str:
+        # If the previous translation ended a sentence (.!?), the next
+        # fragment is shown right after on the overlay. Reading it with a
+        # lowercase first letter looks like a continuation, even though it
+        # is actually a new sentence. Capitalize so the viewer reads it
+        # as the start of something new.
+        if not value or not self.history:
+            return value
+        prev_translation = self.history[-1][1] if self.history else ""
+        if not prev_translation:
+            return value
+        if not re.search(r'[.!?]\s*["\)\]»]?\s*$', prev_translation):
+            return value
+        first = value[0]
+        if first.isalpha() and first.islower():
+            return first.upper() + value[1:]
+        return value
 
     def reset_context(self) -> None:
         self.history.clear()
