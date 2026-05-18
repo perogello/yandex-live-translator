@@ -2,9 +2,22 @@
   "use strict";
 
   if (window.__yaTranslatorContentStarted) {
+    try {
+      console.log("[YaST/dbg] content.js skipped second init in same window", {
+        url: window.location.href,
+        firstInitAt: window.__yaTranslatorContentStartedAt || "unknown"
+      });
+    } catch (e) {}
     return;
   }
   window.__yaTranslatorContentStarted = true;
+  window.__yaTranslatorContentStartedAt = new Date().toISOString();
+  try {
+    console.log("[YaST/dbg] content.js init", {
+      url: window.location.href,
+      at: window.__yaTranslatorContentStartedAt
+    });
+  } catch (e) {}
 
   function isLocalBackendPage() {
     const host = window.location.hostname;
@@ -38,6 +51,20 @@
   const reader = new window.YaSubtitleReader();
   const translator = new window.YaTranslatorClient(settings);
   const segmenter = window.YaSubtitleSegmenter ? new window.YaSubtitleSegmenter(settings) : null;
+
+  // Diagnostic log helper. Only fires when `settings.debug` is on
+  // (Options -> "Показать debug-панель"). Each call is one console.log line
+  // prefixed with [YaST/dbg]. Used to trace enqueueTranslation decisions so
+  // duplicate-translation root causes can be identified from DevTools.
+  function dbg(...args) {
+    if (settings && settings.debug) {
+      try { console.log("[YaST/dbg]", ...args); } catch (e) {}
+    }
+  }
+  function dbgText(t) {
+    if (!t) return "";
+    return t.length > 80 ? t.slice(0, 80) + "..." : t;
+  }
 
   let state = State.INIT;
   let lastRawText = "";
@@ -826,7 +853,7 @@
         setState(State.LISTENING, { en: normalized, segmenter: "read" });
       }
       for (const commit of commits) {
-        enqueueTranslation(commit);
+        enqueueTranslation(commit, "cdp-segmenter-commit");
       }
       return;
     }
@@ -929,7 +956,7 @@
       }
       return;
     }
-    enqueueTranslation(toTranslate);
+    enqueueTranslation(toTranslate, "cdp-legacy-flush");
     cdpSegment = split.head ? split.tail : "";
     cdpLastWindow = cdpSegment;
     cdpSegmentStartedAt = cdpSegment ? Date.now() : 0;
@@ -975,40 +1002,56 @@
     debugPanel.update({ shadow: "hook error", error: event.detail && event.detail.message });
   });
 
-  function enqueueTranslation(text) {
+  function enqueueTranslation(text, origin = "unknown") {
     if (!settings.enabled || !text || text.length < settings.minChars || text === lastSentText) {
+      if (settings.debug) {
+        const reason = !settings.enabled ? "disabled" :
+                       !text ? "empty" :
+                       text.length < settings.minChars ? "tooShort" :
+                       "sameAsLastSent";
+        dbg("skip", { origin, reason, text: dbgText(text) });
+      }
       return;
     }
     const committedAt = Date.now();
     const clipped = cleanSourceForTranslation(text).slice(0, settings.maxInputChars);
     rememberSourceSeen(text, committedAt);
     const firstSeenAt = firstSeenFor(clipped) || firstSeenFor(text) || committedAt;
+    dbg("try", { origin, text: dbgText(clipped), qLen: translationQueue.length, inProgress: translationInProgress });
     if (isUnsafeFinalFragment(clipped)) {
+      dbg("skip", { origin, reason: "unsafeFinalFragment", text: dbgText(clipped) });
       debugPanel.update({ queue: translationQueue.length, skipped: "unfinished" });
       return;
     }
     if (wasRecentlySent(clipped)) {
+      dbg("skip", { origin, reason: "recentlySent45s", text: dbgText(clipped) });
       debugPanel.update({ queue: translationQueue.length, skipped: "duplicate" });
       return;
     }
     const tail = translationQueue[translationQueue.length - 1];
     const tailText = tail && tail.text ? tail.text : "";
     if (translationQueue.some((item) => item.text === clipped) || tailText === clipped || lastSentText === clipped) {
+      dbg("skip", { origin, reason: "alreadyInQueue", text: dbgText(clipped) });
       return;
     }
     if (overlapRatio(lastSentText, clipped) > 0.72) {
+      dbg("skip", { origin, reason: "overlapWithLastSent>0.72", text: dbgText(clipped) });
       return;
     }
     if (tailText && overlapRatio(tailText, clipped) > 0.72) {
       if (clipped.length > tailText.length) {
+        dbg("replaceTail", { origin, reason: "overlapWithTail>0.72", text: dbgText(clipped) });
         translationQueue[translationQueue.length - 1] = {
           text: clipped,
           telemetry: { firstSeenAt, committedAt, enqueuedAt: Date.now() }
         };
+      } else {
+        dbg("skip", { origin, reason: "overlapWithTail>0.72 (shorter)", text: dbgText(clipped) });
       }
       return;
     }
     if (tailText && clipped.startsWith(tailText) && clipped.length - tailText.length < 24) {
+      dbg("replaceTail", { origin, reason: "extendsTailBy<24", text: dbgText(clipped) });
       translationQueue[translationQueue.length - 1] = {
         text: clipped,
         telemetry: { firstSeenAt, committedAt, enqueuedAt: Date.now() }
@@ -1019,6 +1062,7 @@
       translationQueue.length = 0;
     }
     markRecentlySent(clipped);
+    dbg("enqueued", { origin, text: dbgText(clipped), qLen: translationQueue.length + 1 });
     translationQueue.push({
       text: clipped,
       telemetry: { firstSeenAt, committedAt, enqueuedAt: Date.now() }
@@ -1044,6 +1088,7 @@
     lastTranslationActivityAt = Date.now();
     lastSentText = text;
     markRecentlySent(text);
+    dbg("POST /translate", { text: dbgText(text), qLeft: translationQueue.length });
 
     if (settings.mockMode) {
       lastTranslation = `[mock] ${text}`;
@@ -1137,7 +1182,7 @@
     if (looksIncomplete(text)) {
       delay = Math.max(delay, 2600);
     }
-    stableTimer = window.setTimeout(() => enqueueTranslation(text), delay);
+    stableTimer = window.setTimeout(() => enqueueTranslation(text, "dom-stable-timer"), delay);
   }
 
   function scheduleTick() {
@@ -1163,7 +1208,7 @@
       const nextWords = normalized.split(/\s+/).filter(Boolean).length;
       const isMeaningfulBoundary = /[.!?]$/.test(lastRawText.trim()) || nextWords + 2 < prevWords;
       if (lastRawText && !normalized.includes(lastRawText) && lastRawText !== lastSentText && isMeaningfulBoundary) {
-        enqueueTranslation(lastRawText);
+        enqueueTranslation(lastRawText, "dom-raw-boundary");
       }
       lastRawText = normalized;
       publishInputActivity(normalized);
@@ -1203,7 +1248,7 @@
               if (looksIncomplete(commit) || wordsOf(commit).length < 6) {
                 continue;
               }
-              enqueueTranslation(commit);
+              enqueueTranslation(commit, "shadow-close-flush");
             }
             segmenter.reset();
           }
