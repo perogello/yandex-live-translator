@@ -420,6 +420,46 @@
       .filter(Boolean);
   }
 
+  // Overlap-suppression for the sliding window: if the new EN literally starts
+  // with the words that ended the previously SENT EN, clip that shared prefix.
+  // Yandex live subtitles emit a sliding window that re-shows the tail of the
+  // previous fragment at the head of the next one — without this clip the
+  // viewer sees the same Russian text twice within a couple of seconds.
+  //
+  // Conservative thresholds (chosen so the function never makes things worse):
+  //  - overlap must be at least 4 words long (no false hits on common words);
+  //  - at least 6 words must remain in the tail (no useless 1–2-word remnants);
+  //  - overlap is a strict ordered word-by-word match (suffix of A == prefix of B),
+  //    not a bag-of-words ratio.
+  // If any condition fails, the original text is returned unchanged.
+  const OVERLAP_CLIP_MIN_OVERLAP_WORDS = 4;
+  const OVERLAP_CLIP_MIN_TAIL_WORDS = 6;
+  const OVERLAP_CLIP_MAX_OVERLAP_WORDS = 12;
+  function clipOverlapPrefix(prevEn, newEn) {
+    if (!prevEn || !newEn) return newEn;
+    const prevWords = wordsOf(prevEn);
+    const newWords = wordsOf(newEn);
+    if (prevWords.length < OVERLAP_CLIP_MIN_OVERLAP_WORDS) return newEn;
+    if (newWords.length < OVERLAP_CLIP_MIN_OVERLAP_WORDS + OVERLAP_CLIP_MIN_TAIL_WORDS) return newEn;
+    const normalize = (w) => w.toLowerCase().replace(/[^\p{L}\p{N}']+/gu, "");
+    const prevNorm = prevWords.map(normalize);
+    const newNorm = newWords.map(normalize);
+    const maxK = Math.min(prevNorm.length, newNorm.length - OVERLAP_CLIP_MIN_TAIL_WORDS, OVERLAP_CLIP_MAX_OVERLAP_WORDS);
+    for (let k = maxK; k >= OVERLAP_CLIP_MIN_OVERLAP_WORDS; k -= 1) {
+      let match = true;
+      for (let i = 0; i < k; i += 1) {
+        if (prevNorm[prevNorm.length - k + i] !== newNorm[i]) {
+          match = false;
+          break;
+        }
+      }
+      if (match) {
+        return newWords.slice(k).join(" ");
+      }
+    }
+    return newEn;
+  }
+
   function overlapRatio(a, b) {
     const left = normalizedWords(a);
     const right = normalizedWords(b);
@@ -1065,7 +1105,13 @@
       return;
     }
     const committedAt = Date.now();
-    const clipped = cleanSourceForTranslation(text).slice(0, settings.maxInputChars);
+    let clipped = cleanSourceForTranslation(text).slice(0, settings.maxInputChars);
+    const clippedAfterOverlap = clipOverlapPrefix(lastSentText, clipped);
+    if (clippedAfterOverlap !== clipped) {
+      const removed = clipped.slice(0, clipped.length - clippedAfterOverlap.length).trim();
+      dbg("clipped-overlap", { origin, removed: dbgText(removed), kept: dbgText(clippedAfterOverlap) });
+      clipped = clippedAfterOverlap;
+    }
     rememberSourceSeen(text, committedAt);
     const firstSeenAt = firstSeenFor(clipped) || firstSeenFor(text) || committedAt;
     dbg("try", { origin, text: dbgText(clipped), qLen: translationQueue.length, inProgress: translationInProgress, warmup });
