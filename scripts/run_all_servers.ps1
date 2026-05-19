@@ -226,43 +226,8 @@ function Start-YandexWithCdp {
   $debugPort = [int]$config.YandexDebugPort
 
   if (Test-PortListening -Port $debugPort) {
-    $existingTabs = @()
-    try {
-      $tabsResp = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$debugPort/json" -TimeoutSec 2 -ErrorAction Stop
-      $existingTabs = @(($tabsResp.Content | ConvertFrom-Json) | Where-Object { $_.type -eq "page" })
-    } catch {}
-
-    if ($existingTabs.Count -gt 1) {
-      Write-Host ""
-      Write-Host ("Yandex CDP port " + $debugPort + " is already open, but Yandex has " + $existingTabs.Count + " tabs:")
-      foreach ($t in $existingTabs) {
-        $url = "$($t.url)"
-        if ($url.Length -gt 80) { $url = $url.Substring(0, 80) + "..." }
-        $title = "$($t.title)"
-        if ($title.Length -gt 50) { $title = $title.Substring(0, 50) + "..." }
-        Write-Host ("  - " + $title + " | " + $url)
-      }
-      Write-Host "The extension runs in every tab and may produce duplicate translations."
-      $answer = Read-Host "Close ALL Yandex windows and restart with ONE clean tab? Type Y to do it, anything else to keep current windows"
-      if ($answer -in @("Y", "y", "Yes", "yes")) {
-        foreach ($proc in (Get-YandexProcesses)) {
-          Write-Host "Stopping Yandex PID $($proc.Id) ..."
-          Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-        }
-        $deadline = (Get-Date).AddSeconds(10)
-        while ((Get-YandexProcesses) -and (Get-Date) -lt $deadline) {
-          Start-Sleep -Milliseconds 300
-        }
-        $script:startedYandex = $true
-        # Fall through to fresh start below
-      } else {
-        Write-Host "Keeping existing Yandex windows. Note: extra tabs may cause duplicate translations."
-        return
-      }
-    } else {
-      Write-Host ("Yandex CDP port " + $debugPort + " is already open (" + $existingTabs.Count + " tab).")
-      return
-    }
+    Write-Host "Yandex CDP port $debugPort is already open."
+    return
   }
 
   $runningYandex = Get-YandexProcesses
@@ -458,37 +423,6 @@ try {
   Write-Host "Yandex CDP: http://127.0.0.1:$debugPort/json  [$yandexStatus]"
   Write-Host "Overlay URL: http://127.0.0.1:$translatorPort/overlay?font_size=42&bottom=7&max_width=88&opacity=0.72&hide_after_ms=6000"
   Write-Host "Logs: $logsDir"
-  Write-Host ""
-
-  # Live state snapshot: how many tabs and clients are active right now
-  Write-Host "== LIVE STATE =="
-  try {
-    $tabsResp = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$debugPort/json" -TimeoutSec 2 -ErrorAction Stop
-    $tabsNow = @(($tabsResp.Content | ConvertFrom-Json) | Where-Object { $_.type -eq "page" })
-    if ($tabsNow.Count -le 1) {
-      Write-Host ("Yandex tabs: " + $tabsNow.Count) -ForegroundColor Green
-    } else {
-      Write-Host ("Yandex tabs: " + $tabsNow.Count + " (the extension will run in EACH of them)") -ForegroundColor Yellow
-      foreach ($t in $tabsNow) {
-        $url = "$($t.url)"
-        if ($url.Length -gt 80) { $url = $url.Substring(0, 80) + "..." }
-        Write-Host ("  - " + $url)
-      }
-      Write-Host "Tip: close extra tabs before a broadcast, or use cleanup.bat -> 'Close all Yandex windows'." -ForegroundColor Yellow
-    }
-  } catch {
-    Write-Host "Yandex tabs: could not query :$debugPort/json"
-  }
-
-  $established = @(Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort $translatorPort -State Established -ErrorAction SilentlyContinue)
-  $uniqueClients = ($established | Select-Object -ExpandProperty RemotePort -Unique).Count
-  if ($uniqueClients -le 1) {
-    Write-Host ("Translator clients: " + $uniqueClients) -ForegroundColor Green
-  } else {
-    Write-Host ("Translator clients: " + $uniqueClients + " (more than 1 = extra tabs or stale processes)") -ForegroundColor Yellow
-  }
-
-  Write-Host ""
   Write-Host "Keep this window open. Close it or press Ctrl+C to stop."
   Write-Host ""
 

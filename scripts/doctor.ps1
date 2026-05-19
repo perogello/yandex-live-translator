@@ -239,47 +239,6 @@ if (Test-Path $manifest) {
   Mark-Fail "extension\manifest.json missing" "Re-copy the extension folder from a working install."
 }
 
-# Live state (active clients + Yandex tabs)
-Check-Section "Live state (active clients & Yandex tabs)"
-
-$translatorListening = Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 8765 -State Listen -ErrorAction SilentlyContinue
-if ($translatorListening) {
-  $established = @(Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 8765 -State Established -ErrorAction SilentlyContinue)
-  if ($established.Count -eq 0) {
-    Mark-Ok "translator-server: 0 active clients (no tab is sending right now)"
-  } else {
-    $uniqueClients = ($established | Select-Object -ExpandProperty RemotePort -Unique).Count
-    if ($uniqueClients -le 1) {
-      Mark-Ok ("translator-server: " + $uniqueClients + " active client connection")
-    } else {
-      Mark-Warn ("translator-server: " + $uniqueClients + " active client connections") "More than 1 usually means multiple Yandex tabs run the extension at once. Close extra tabs before a broadcast."
-    }
-  }
-} else {
-  Mark-Ok "translator-server is not running yet (no clients to count)"
-}
-
-try {
-  $tabsResp = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:9222/json" -TimeoutSec 2 -ErrorAction Stop
-  $tabsAll = $tabsResp.Content | ConvertFrom-Json
-  $tabs = @($tabsAll | Where-Object { $_.type -eq "page" })
-  $tabCount = $tabs.Count
-  if ($tabCount -le 1) {
-    Mark-Ok ("Yandex CDP shows " + $tabCount + " page tab")
-  } else {
-    Mark-Warn ("Yandex CDP shows " + $tabCount + " page tabs (extension runs in every tab):") "Close extra tabs before a broadcast to avoid duplicate translations."
-    foreach ($t in $tabs) {
-      $url = "$($t.url)"
-      if ($url.Length -gt 80) { $url = $url.Substring(0, 80) + "..." }
-      $title = "$($t.title)"
-      if ($title.Length -gt 50) { $title = $title.Substring(0, 50) + "..." }
-      Write-Host ("        - " + $title + " | " + $url)
-    }
-  }
-} catch {
-  Mark-Ok "Yandex CDP not reachable on :9222 (browser not started via launcher yet)"
-}
-
 # Logs dir
 Check-Section "Logs"
 $logsDir = Join-Path $ProjectRoot "logs"

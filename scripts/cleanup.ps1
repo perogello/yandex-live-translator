@@ -97,59 +97,14 @@ if ($foundAny) {
   Write-Host "No stuck processes."
 }
 
-# 3. Yandex Browser - full close
-Show-Header "Yandex Browser (close all windows)"
-$yandexProcs = @(Get-Process -ErrorAction SilentlyContinue | Where-Object {
-  $_.ProcessName -eq "browser" -and $_.Path -like "*\Yandex\YandexBrowser\*"
-})
+# 3. Yandex CDP port
+Show-Header "Yandex Browser with debug port"
 $debugListening = Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 9222 -State Listen -ErrorAction SilentlyContinue
-
-if ($yandexProcs.Count -gt 0) {
-  Write-Host ("Yandex Browser is running. Processes: " + $yandexProcs.Count)
-
-  if ($debugListening) {
-    Write-Host "Debug port 9222 is open. Reading list of open tabs..."
-    try {
-      $tabsResp = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:9222/json" -TimeoutSec 2 -ErrorAction Stop
-      $tabs = @(($tabsResp.Content | ConvertFrom-Json) | Where-Object { $_.type -eq "page" })
-      Write-Host ("Open page tabs: " + $tabs.Count)
-      foreach ($t in $tabs) {
-        $url = "$($t.url)"
-        if ($url.Length -gt 80) { $url = $url.Substring(0, 80) + "..." }
-        $title = "$($t.title)"
-        if ($title.Length -gt 50) { $title = $title.Substring(0, 50) + "..." }
-        Write-Host ("  - " + $title + " | " + $url)
-      }
-      if ($tabs.Count -gt 1) {
-        Write-Host "Multiple tabs means the extension runs in each of them." -ForegroundColor Yellow
-        Write-Host "This can produce duplicate translations during a broadcast." -ForegroundColor Yellow
-      }
-    } catch {
-      Write-Host "Could not query tab list from CDP (browser may be busy)."
-    }
-  } else {
-    Write-Host "Debug port 9222 is NOT open. Cannot list tabs."
-  }
-
-  Write-Host ""
-  if (Ask-YesNo "Close ALL Yandex Browser windows now?" $false) {
-    foreach ($p in $yandexProcs) {
-      Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
-      Write-Host ("Stopped PID " + $p.Id)
-    }
-    $deadline = (Get-Date).AddSeconds(10)
-    while (((Get-Process -ErrorAction SilentlyContinue | Where-Object {
-              $_.ProcessName -eq "browser" -and $_.Path -like "*\Yandex\YandexBrowser\*"
-            }).Count -gt 0) -and (Get-Date) -lt $deadline) {
-      Start-Sleep -Milliseconds 300
-    }
-    Write-Host "Yandex Browser closed." -ForegroundColor Green
-    Write-Host "Use run_all_servers.bat to start it again clean (with debug port)."
-  } else {
-    Write-Host "Yandex left running."
-  }
+if ($debugListening) {
+  Write-Host "Yandex with debug port 9222 is running."
+  Write-Host "If you want to start clean before a real broadcast, close all Yandex windows now."
 } else {
-  Write-Host "Yandex Browser is not running."
+  Write-Host "No Yandex Browser with debug port is running."
 }
 
 # 4. Optional: reset config to defaults
