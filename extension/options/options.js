@@ -7,6 +7,7 @@
     "contextProfile",
     "promptStyle",
     "contextResetGapMs",
+    "subtitleSource",
     "cdpReaderUrl",
     "enableCdpFallback",
     "enabled",

@@ -43,10 +43,18 @@
           </select>
         </label>
         <label>
+          Источник субтитров
+          <select id="subtitleSource">
+            <option value="auto">Авто (YouTube CC если на YouTube, иначе Yandex)</option>
+            <option value="yandex">Yandex Browser ASR (живые субтитры Я.Браузера)</option>
+            <option value="youtube">YouTube CC (включи кнопку CC в плеере)</option>
+          </select>
+        </label>
+        <label>
           CDP reader URL
           <input id="cdpReaderUrl" type="url">
         </label>
-        <label><input id="enableCdpFallback" type="checkbox"> Enable CDP fallback</label>
+        <label><input id="enableCdpFallback" type="checkbox"> Enable CDP fallback (только для Yandex source)</label>
         <label><input id="enabled" type="checkbox"> Enable translation</label>
         <label><input id="overlayEnabled" type="checkbox"> Show overlay</label>
         <label><input id="debug" type="checkbox"> Debug panel</label>

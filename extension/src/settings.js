@@ -9,6 +9,11 @@
     contextResetGapMs: 15000,
     cdpReaderUrl: "http://127.0.0.1:8766",
     enableCdpFallback: true,
+    // Subtitle source: "yandex" reads the Yandex Browser ASR widget,
+    // "youtube" reads YouTube native CC (works in Chromium-based browsers
+    // like Edge/Chrome), "auto" picks YouTube when the page is YouTube and
+    // Yandex's widget is absent, otherwise Yandex.
+    subtitleSource: "auto",
     enabled: true,
     debug: false,
     mockMode: false,

@@ -35,7 +35,26 @@
   }
   const debugPanel = new window.YaTranslatorDebugPanel();
   const overlay = new window.YaTranslatorOverlay(settings);
-  const reader = new window.YaSubtitleReader();
+  // Reader selection: settings.subtitleSource controls where we read EN
+  // subtitles from. "yandex" forces the Yandex Browser ASR widget,
+  // "youtube" forces YouTube native CC, "auto" picks YouTube when we're
+  // on a YouTube host and YouTube CC is visible, otherwise Yandex.
+  function chooseReader() {
+    const mode = (settings && settings.subtitleSource) || "auto";
+    const host = (window.location.hostname || "").toLowerCase();
+    const isYouTubeHost = host.endsWith("youtube.com") || host.endsWith("youtube-nocookie.com") || host === "youtu.be";
+    if (mode === "youtube") {
+      return window.YouTubeSubtitleReader ? new window.YouTubeSubtitleReader() : new window.YaSubtitleReader();
+    }
+    if (mode === "yandex") {
+      return new window.YaSubtitleReader();
+    }
+    if (isYouTubeHost && window.YouTubeSubtitleReader) {
+      return new window.YouTubeSubtitleReader();
+    }
+    return new window.YaSubtitleReader();
+  }
+  const reader = chooseReader();
   const translator = new window.YaTranslatorClient(settings);
   const segmenter = window.YaSubtitleSegmenter ? new window.YaSubtitleSegmenter(settings) : null;
 
@@ -1182,7 +1201,11 @@
     const { text, status } = reader.read();
     debugPanel.update(status);
 
-    if (!text && settings.enableCdpFallback) {
+    // CDP fallback only makes sense for the Yandex reader (it works around
+    // closed shadow roots in the Yandex subtitle widget). For YouTube CC
+    // there is no closed shadow root, so skip it.
+    const usingYouTubeReader = reader instanceof (window.YouTubeSubtitleReader || function () {});
+    if (!text && settings.enableCdpFallback && !usingYouTubeReader) {
       const cdpResult = await fetchCdpText();
       if (cdpResult.text) {
         setState(State.READY, { shadow: "closed; using CDP", error: "" });
