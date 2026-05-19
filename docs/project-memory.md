@@ -27,3 +27,23 @@ Follow-up local test:
 - Reproduced a stale queue edge case: when a newer near-duplicate replaced the already visible row, duplicate rows could remain in `pendingRows` and appear later.
 - Fixed by filtering only pending rows already covered by the visible/new message.
 - Verified exact duplicate x4, stale pending duplicate cleanup, unrelated pending row preservation, and sliding ASR expansion collapse.
+
+## 2026-05-19: Safer YouTube CC source reader
+
+Context:
+- `otherPC_youtube` was faster than Yandex ASR, but logs showed YouTube UI text leaking into source subtitles.
+- Example issue: language/settings text was concatenated with real English speech before translation.
+- Another issue: some captions repeated the same phrase inside one source line.
+
+Changed:
+- `extension/src/subtitle-reader-youtube.js`: read only visible YouTube caption line/segment nodes instead of broad container text.
+- Filter YouTube settings/language UI text before it reaches the translator.
+- Collapse adjacent repeated word runs inside one caption read.
+- Remove pure non-speech caption cues such as `[APPLAUSE]` and `[SPEAKING SPANISH]` before model translation.
+- Did not add automatic fallback switching between YouTube and Yandex sources.
+
+Validation:
+- `node --check extension\src\subtitle-reader-youtube.js`
+- `node scripts\test_youtube_reader.js`
+- `node scripts\test_segmenter.js`
+- `node --check extension\src\content.js`
