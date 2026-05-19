@@ -791,8 +791,24 @@ OVERLAY_HTML = """
         return;
       }
 
+      const pendingKey = pendingRows.join("\\n");
+      if (pendingKey && areNearDuplicates(pendingKey, messageKey)) {
+        pendingRows = messageLines;
+        processRowQueue();
+        return;
+      }
+
+      if (pendingRows.length > 0 && lines.length > 0) {
+        const combinedKey = [...lines.slice(-1), ...pendingRows].join("\\n");
+        if (areNearDuplicates(combinedKey, messageKey)) {
+          pendingRows = messageLines;
+          processRowQueue();
+          return;
+        }
+      }
+
       pendingRows.push(...messageLines);
-      if (pendingRows.length > 8) pendingRows = pendingRows.slice(-8);
+      if (pendingRows.length > 4) pendingRows = pendingRows.slice(-4);
       processRowQueue();
     }
 

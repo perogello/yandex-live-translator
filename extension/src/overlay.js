@@ -192,9 +192,25 @@
         return;
       }
 
+      const pendingKey = this.pendingRows.join("\n");
+      if (pendingKey && this.areNearDuplicates(pendingKey, messageKey)) {
+        this.pendingRows = messageLines;
+        this.processRowQueue();
+        return;
+      }
+
+      if (this.pendingRows.length > 0 && this.lines.length > 0) {
+        const combinedKey = [...this.lines.slice(-1), ...this.pendingRows].join("\n");
+        if (this.areNearDuplicates(combinedKey, messageKey)) {
+          this.pendingRows = messageLines;
+          this.processRowQueue();
+          return;
+        }
+      }
+
       this.pendingRows.push(...messageLines);
-      if (this.pendingRows.length > 8) {
-        this.pendingRows = this.pendingRows.slice(-8);
+      if (this.pendingRows.length > 4) {
+        this.pendingRows = this.pendingRows.slice(-4);
       }
       this.processRowQueue();
     }
