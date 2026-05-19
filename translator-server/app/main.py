@@ -783,10 +783,14 @@ OVERLAY_HTML = """
       lastMessageKey = messageKey;
       lastMessageAt = now;
       const lastKey = lines.slice(-2).join("\\n");
-      if (lastKey === messageKey) return;
+      if (lastKey === messageKey) {
+        pendingRows = pendingRows.filter((row) => !areNearDuplicates(row, messageKey));
+        return;
+      }
 
       if (lastKey && areNearDuplicates(lastKey, messageKey)) {
         lines = messageKey.length > lastKey.length ? messageLines : lines.slice(-2);
+        pendingRows = pendingRows.filter((row) => !areNearDuplicates(row, messageKey));
         renderStatic();
         return;
       }

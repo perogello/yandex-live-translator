@@ -22,3 +22,8 @@ Validation:
 - `node scripts\test_segmenter.js`
 - `cd translator-server; .\.venv\Scripts\python.exe -m py_compile app\main.py`
 - `cd translator-server; .\.venv\Scripts\python.exe -c "import app.main; print('ok')"`
+
+Follow-up local test:
+- Reproduced a stale queue edge case: when a newer near-duplicate replaced the already visible row, duplicate rows could remain in `pendingRows` and appear later.
+- Fixed by filtering only pending rows already covered by the visible/new message.
+- Verified exact duplicate x4, stale pending duplicate cleanup, unrelated pending row preservation, and sliding ASR expansion collapse.

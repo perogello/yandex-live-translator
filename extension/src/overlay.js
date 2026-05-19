@@ -184,10 +184,12 @@
       this.lastMessageAt = now;
       const lastKey = this.lines.slice(-2).join("\n");
       if (lastKey === messageKey) {
+        this.pendingRows = this.pendingRows.filter((row) => !this.areNearDuplicates(row, messageKey));
         return;
       }
       if (lastKey && this.areNearDuplicates(lastKey, messageKey)) {
         this.lines = messageKey.length > lastKey.length ? messageLines : this.lines.slice(-2);
+        this.pendingRows = this.pendingRows.filter((row) => !this.areNearDuplicates(row, messageKey));
         this.renderStatic();
         return;
       }
