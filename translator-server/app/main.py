@@ -335,6 +335,63 @@ async def translate(request: TranslateRequest) -> TranslateResponse:
             latency_ms=latency_ms,
         )
 
+    # Similarity-based cache lookup: Yandex sliding-window keeps producing
+    # near-duplicates of the same sentence ("X Y Z A B" → "Y Z A B C" → ...).
+    # Translating each one wastes Ollama compute and produces 3-4 different
+    # Russian variants of the same idea on the overlay. If a recently cached
+    # EN is >=75% similar (by word-sequence) to the new text, reuse its
+    # translation instead of calling the model again.
+    cache_key_prefix = (
+        f"{request.source_lang}:{request.target_lang}:"
+        f"{model or getattr(translator, 'model_name', '')}:"
+        f"{profile or ''}:{prompt_style or ''}:"
+    )
+    similar = cache.find_similar(cache_key_prefix, text, threshold=0.75)
+    if similar is not None:
+        cached_value, sim_ratio, sim_source = similar
+        latency_ms = int((time.perf_counter() - started) * 1000)
+        update_current_translation(
+            original=text,
+            translation=cached_value,
+            backend=config.translation.backend,
+            model=resolved_model,
+            latency_ms=latency_ms,
+        )
+        last_active_model = resolved_model
+        logger.info(
+            "translated backend=%s cached=similar latency_ms=%s chars=%s ratio=%.2f",
+            config.translation.backend,
+            latency_ms,
+            len(text),
+            sim_ratio,
+        )
+        translation_logger.write(
+            {
+                "event": "translate",
+                "source_lang": request.source_lang,
+                "target_lang": request.target_lang,
+                "text": text,
+                "raw_en": text,
+                "translation": cached_value,
+                "backend": config.translation.backend,
+                "model": model or getattr(translator, "model_name", ""),
+                "profile": profile,
+                "cached": "similar",
+                "similar_ratio": round(sim_ratio, 3),
+                "similar_source": sim_source,
+                "latency_ms": latency_ms,
+                **timing,
+                "status": "ok",
+            }
+        )
+        return TranslateResponse(
+            translation=cached_value,
+            backend=config.translation.backend,
+            model=resolved_model,
+            cached=True,
+            latency_ms=latency_ms,
+        )
+
     try:
         try:
             await asyncio.wait_for(translate_lock.acquire(), timeout=8.0)
