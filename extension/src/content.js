@@ -95,42 +95,15 @@
   // shouldDropChunk) so the opening phrase of a stream is not silently
   // dropped. See README/docs/app-overview.md for the rationale.
   let sessionStartedAt = 0;
-  let warmupFirstSeen = "";
-  let warmupFirstSeenAt = 0;
   const WARMUP_DURATION_MS = 5000;
-  const WARMUP_FIRST_FLUSH_DELAY_MS = 200;
-  const WARMUP_FIRST_FLUSH_MAX_AGE_MS = 1500;
   function isWarmupActive() {
     return sessionStartedAt && (Date.now() - sessionStartedAt) < WARMUP_DURATION_MS;
   }
-  function markFreshSessionStart(now, reason, snapshotText = "") {
+  function markFreshSessionStart(now, reason) {
     sessionStartedAt = now;
-    warmupFirstSeen = "";
-    warmupFirstSeenAt = 0;
     if (settings && settings.debug) {
       try { console.log("[YaST/dbg] warmup-start", { reason, now }); } catch (e) {}
     }
-    if (snapshotText) {
-      captureWarmupFirstSeen(snapshotText, now);
-    }
-  }
-  function captureWarmupFirstSeen(text, now) {
-    if (warmupFirstSeen || !text) return;
-    warmupFirstSeen = text;
-    warmupFirstSeenAt = now;
-    // Flush the captured snapshot quickly. The regular debounce keeps resetting
-    // on every Yandex DOM update, so without this snapshot the very first words
-    // get scrolled out of the sliding window before they ever reach the server.
-    window.setTimeout(() => {
-      if (!warmupFirstSeen) return;
-      if (Date.now() - warmupFirstSeenAt > WARMUP_FIRST_FLUSH_MAX_AGE_MS) {
-        warmupFirstSeen = "";
-        return;
-      }
-      const snapshot = warmupFirstSeen;
-      warmupFirstSeen = "";
-      enqueueTranslation(snapshot, "warmup-first-flush");
-    }, WARMUP_FIRST_FLUSH_DELAY_MS);
   }
   const translationQueue = [];
   let translationInProgress = false;
@@ -886,9 +859,9 @@
       }
     }
     if (!lastAnySubtitleAt) {
-      markFreshSessionStart(now, "firstEver-cdp", normalized);
+      markFreshSessionStart(now, "firstEver-cdp");
     } else if (now - lastAnySubtitleAt > getContextResetGapMs()) {
-      markFreshSessionStart(now, "longSilence-cdp", normalized);
+      markFreshSessionStart(now, "longSilence-cdp");
     }
     lastAnySubtitleAt = now;
     publishInputActivity(normalized);
@@ -1263,9 +1236,9 @@
         resetLiveContext("context gap");
       }
       if (!lastAnySubtitleAt) {
-        markFreshSessionStart(now, "firstEver-dom", normalized);
+        markFreshSessionStart(now, "firstEver-dom");
       } else if (now - lastAnySubtitleAt > getContextResetGapMs()) {
-        markFreshSessionStart(now, "longSilence-dom", normalized);
+        markFreshSessionStart(now, "longSilence-dom");
       }
       lastAnySubtitleAt = now;
       const prevWords = lastRawText.split(/\s+/).filter(Boolean).length;
