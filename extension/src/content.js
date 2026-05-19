@@ -428,19 +428,12 @@
   //
   // Conservative thresholds (chosen so the function never makes things worse):
   //  - overlap must be at least 4 words long (no false hits on common words);
-  //  - at least 3 words must remain in the tail. Earlier we required 6, but on
-  //    real broadcasts a typical sliding-window fragment is 8–10 words with a
-  //    6–7-word overlap, which leaves only a 2–4-word tail. Requiring 6+ word
-  //    tail blocked the majority of legitimate clips. 3 words is enough for
-  //    the model: it keeps a context window of recent translations, so a short
-  //    tail still gets translated coherently;
+  //  - at least 6 words must remain in the tail (no useless 1–2-word remnants);
   //  - overlap is a strict ordered word-by-word match (suffix of A == prefix of B),
-  //    not a bag-of-words ratio;
-  //  - cap on the overlap length keeps the algorithm cheap and avoids matching
-  //    pathological cases where a long phrase happens to repeat.
+  //    not a bag-of-words ratio.
   // If any condition fails, the original text is returned unchanged.
   const OVERLAP_CLIP_MIN_OVERLAP_WORDS = 4;
-  const OVERLAP_CLIP_MIN_TAIL_WORDS = 3;
+  const OVERLAP_CLIP_MIN_TAIL_WORDS = 6;
   const OVERLAP_CLIP_MAX_OVERLAP_WORDS = 12;
   function clipOverlapPrefix(prevEn, newEn) {
     if (!prevEn || !newEn) return newEn;
