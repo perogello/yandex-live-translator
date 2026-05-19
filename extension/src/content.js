@@ -88,23 +88,6 @@
   let pendingFragmentAt = 0;
   let lastAnySubtitleAt = 0;
   let lastActivityPublishAt = 0;
-  // sessionStartedAt is set when the very first subtitle is seen, and
-  // also whenever a long silence triggers a context reset. While the
-  // warmup window is active, enqueueTranslation and scheduleTranslation
-  // loosen four guards (minChars, isUnsafeFinalFragment, debounce delay,
-  // shouldDropChunk) so the opening phrase of a stream is not silently
-  // dropped. See README/docs/app-overview.md for the rationale.
-  let sessionStartedAt = 0;
-  const WARMUP_DURATION_MS = 5000;
-  function isWarmupActive() {
-    return sessionStartedAt && (Date.now() - sessionStartedAt) < WARMUP_DURATION_MS;
-  }
-  function markFreshSessionStart(now, reason) {
-    sessionStartedAt = now;
-    if (settings && settings.debug) {
-      try { console.log("[YaST/dbg] warmup-start", { reason, now }); } catch (e) {}
-    }
-  }
   const translationQueue = [];
   let translationInProgress = false;
   const FRAGMENT_JOIN_MAX_MS = 8000;
@@ -858,11 +841,6 @@
         segmenter.reset();
       }
     }
-    if (!lastAnySubtitleAt) {
-      markFreshSessionStart(now, "firstEver-cdp");
-    } else if (now - lastAnySubtitleAt > getContextResetGapMs()) {
-      markFreshSessionStart(now, "longSilence-cdp");
-    }
     lastAnySubtitleAt = now;
     publishInputActivity(normalized);
 
@@ -968,7 +946,7 @@
       clearCdpSegment();
       return;
     }
-    if (!isWarmupActive() && shouldDropChunk(toTranslate)) {
+    if (shouldDropChunk(toTranslate)) {
       cdpSegment = split.head ? split.tail : text;
       cdpLastWindow = cdpSegment;
       if (cdpSegment && Date.now() - cdpSegmentStartedAt < settings.qualityMaxWaitMs + 4500) {
@@ -1025,15 +1003,13 @@
   });
 
   function enqueueTranslation(text, origin = "unknown") {
-    const warmup = isWarmupActive();
-    const effectiveMinChars = warmup ? Math.min(settings.minChars, 4) : settings.minChars;
-    if (!settings.enabled || !text || text.length < effectiveMinChars || text === lastSentText) {
+    if (!settings.enabled || !text || text.length < settings.minChars || text === lastSentText) {
       if (settings.debug) {
         const reason = !settings.enabled ? "disabled" :
                        !text ? "empty" :
-                       text.length < effectiveMinChars ? "tooShort" :
+                       text.length < settings.minChars ? "tooShort" :
                        "sameAsLastSent";
-        dbg("skip", { origin, reason, text: dbgText(text), warmup });
+        dbg("skip", { origin, reason, text: dbgText(text) });
       }
       return;
     }
@@ -1041,8 +1017,8 @@
     const clipped = cleanSourceForTranslation(text).slice(0, settings.maxInputChars);
     rememberSourceSeen(text, committedAt);
     const firstSeenAt = firstSeenFor(clipped) || firstSeenFor(text) || committedAt;
-    dbg("try", { origin, text: dbgText(clipped), qLen: translationQueue.length, inProgress: translationInProgress, warmup });
-    if (!warmup && isUnsafeFinalFragment(clipped)) {
+    dbg("try", { origin, text: dbgText(clipped), qLen: translationQueue.length, inProgress: translationInProgress });
+    if (isUnsafeFinalFragment(clipped)) {
       dbg("skip", { origin, reason: "unsafeFinalFragment", text: dbgText(clipped) });
       debugPanel.update({ queue: translationQueue.length, skipped: "unfinished" });
       return;
@@ -1206,14 +1182,6 @@
     if (looksIncomplete(text)) {
       delay = Math.max(delay, 2600);
     }
-    // Warmup: just after a fresh start or after a long silence the Yandex
-    // sliding window is short-lived. If we wait the usual debounce, the
-    // opening fragment gets shifted out before we send it. Force the fast
-    // debounce so the first line reaches the server while it's still in
-    // the DOM.
-    if (isWarmupActive()) {
-      delay = Math.min(delay, settings.fastPunctuationDebounceMs);
-    }
     stableTimer = window.setTimeout(() => enqueueTranslation(text, "dom-stable-timer"), delay);
   }
 
@@ -1234,11 +1202,6 @@
       const now = Date.now();
       if (lastAnySubtitleAt && now - lastAnySubtitleAt > getContextResetGapMs()) {
         resetLiveContext("context gap");
-      }
-      if (!lastAnySubtitleAt) {
-        markFreshSessionStart(now, "firstEver-dom");
-      } else if (now - lastAnySubtitleAt > getContextResetGapMs()) {
-        markFreshSessionStart(now, "longSilence-dom");
       }
       lastAnySubtitleAt = now;
       const prevWords = lastRawText.split(/\s+/).filter(Boolean).length;
