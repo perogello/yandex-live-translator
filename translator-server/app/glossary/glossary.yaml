@@ -47,6 +47,64 @@ profiles:
       - contact poster
       - cinematic mode
       - portrait mode
+      # --- WWDC / Apple ecosystem ---
+      - tvOS
+      - Siri
+      - Genmoji
+      - Image Playground
+      - Writing Tools
+      - Visual Intelligence
+      - Live Translation
+      - Foundation Models
+      - Foundation Models framework
+      - App Intents
+      - WidgetKit
+      - SwiftData
+      - Swift Assist
+      - Swift Playground
+      - Swift Playgrounds
+      - Game Porting Toolkit
+      - SharePlay
+      - Continuity
+      - Handoff
+      - AirDrop
+      - AirPlay
+      - iCloud
+      - iPhone
+      - iPad
+      - iPad Pro
+      - Mac
+      - MacBook Air
+      - MacBook Pro
+      - Mac mini
+      - Mac Studio
+      - Apple Watch
+      - Apple Vision Pro
+      - Apple TV
+      - Apple Music
+      - Apple Pay
+      - Apple Pencil
+      - AirPods
+      - AirPods Pro
+      - Apple silicon
+      - Neural Engine
+      - M4
+      - M5
+      - A18
+      - A19
+      - Final Cut Pro
+      - Logic Pro
+      - Freeform
+      - Journal
+      - Dynamic Island
+      - ProMotion
+      - Tim Cook
+      - Craig Federighi
+      - Greg Joswiak
+      - John Giannandrea
+      - Mike Rockwell
+      - Susan Prescott
+      - Kevin Lynch
       - Google I/O
       - Google Search
       - Search Live
@@ -214,6 +272,14 @@ profiles:
       node: "узел"
       pod: "pod"
       control plane: "control plane"
+      Live Translation: "Live Translation"
+      Visual Intelligence: "Visual Intelligence"
+      Image Playground: "Image Playground"
+      Writing Tools: "Writing Tools"
+      Foundation Models framework: "фреймворк Foundation Models"
+      on-device model: "модель на устройстве"
+      on-device models: "модели на устройстве"
+      Private Cloud Compute: "Private Cloud Compute"
       invisible ink: "невидимые чернила"
       black light: "ультрафиолетовая лампа"
       hairdryer: "фен"
@@ -226,6 +292,13 @@ profiles:
       jim and i: "Gemini"
       germini: "Gemini"
       gemmini: "Gemini"
+      met pump two: "Med-PaLM 2"
+      met palm two: "Med-PaLM 2"
+      med palm two: "Med-PaLM 2"
+      mit palm too: "Med-PaLM 2"
+      palm two: "PaLM 2"
+      palm api: "PaLM API"
+      bart's: "Bard's"
       scottder hunt: "scavenger hunt"
       scotter hunt: "scavenger hunt"
       pixel nine pro xl: "Pixel 9 Pro XL"
@@ -320,14 +393,42 @@ profiles:
       white camera: "wide camera"
       white variety: "wide variety"
       visual queue: "visual cue"
+      state of the odt: "state-of-the-art"
       state - of - the - ar: "state-of-the-art"
       state - of - their art: "state-of-the-art"
+      c plius go: "C++, Go"
+      dyno game: "Dino game"
       glancable ui: "glanceable UI"
       fire base: "Firebase"
       firebased: "Firebase"
       androids studio: "Android Studio"
       x code: "Xcode"
       swift you eye: "SwiftUI"
+      swift ui: "SwiftUI"
+      swift data: "SwiftData"
+      swift assist: "Swift Assist"
+      i pad os: "iPadOS"
+      ipad os: "iPadOS"
+      mac os: "macOS"
+      mac o s: "macOS"
+      watch os: "watchOS"
+      tv os: "tvOS"
+      vision os: "visionOS"
+      vision o s: "visionOS"
+      gen moji: "Genmoji"
+      gen mochi: "Genmoji"
+      gen mojis: "Genmoji"
+      image playground: "Image Playground"
+      writing tools: "Writing Tools"
+      visual intelligence: "Visual Intelligence"
+      foundation models: "Foundation Models"
+      app intents: "App Intents"
+      apple intelligence: "Apple Intelligence"
+      a18: "A18"
+      a19: "A19"
+      neural engine: "Neural Engine"
+      craig federighi: "Craig Federighi"
+      greg joswiak: "Greg Joswiak"
       app store connect: "App Store Connect"
       lockscreen: "Lock Screen"
       lock screen: "Lock Screen"
@@ -482,7 +583,28 @@ profiles:
       - when_source: "Stadia"
         wrong: "Стадия"
         right: "Stadia"
+      - when_source: "Siri"
+        wrong: "Сири"
+        right: "Siri"
+      - when_source: "Apple Intelligence"
+        wrong: "Эппл Интеллидженс"
+        right: "Apple Intelligence"
+      - when_source: "Genmoji"
+        wrong: "Генмодзи"
+        right: "Genmoji"
+      - when_source: "Liquid Glass"
+        wrong: "Жидкое стекло"
+        right: "Liquid Glass"
+      - when_source: "Liquid Glass"
+        wrong: "жидкое стекло"
+        right: "Liquid Glass"
+      - when_source: "Vision Pro"
+        wrong: "Вижн Про"
+        right: "Vision Pro"
     asr_contextual:
+      - wrong: "bart"
+        right: "Bard"
+        when: ["palm", "code", "programming", "available", "workspace", "extensions", "google"]
       - wrong: "palatine"
         right: "Peloton"
         when: ["workout", "workouts", "fitness", "classes", "class", "running", "training", "exercise"]
