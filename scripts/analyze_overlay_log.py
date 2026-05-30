@@ -118,26 +118,51 @@ def analyze(path: Path) -> None:
         print(f"    - {en}")
     print()
 
-    # ---- 2. LATENCY: seen -> overlay -------------------------------------
+    # ---- 2. LATENCY: split into segmenter vs queue+model -----------------
+    # seen -> overlay  = total delay the viewer feels
+    # commit -> overlay = QUEUE + MODEL (after the chunk was committed)
+    # seen -> commit    = SEGMENTER (waiting for the sentence to stabilize)
     seen = [e["client_seen_to_overlay_ms"] for e in subtitles
             if isinstance(e.get("client_seen_to_overlay_ms"), (int, float))]
     commit = [e["client_commit_to_overlay_ms"] for e in subtitles
               if isinstance(e.get("client_commit_to_overlay_ms"), (int, float))]
+    segmenter = [
+        e["client_seen_to_overlay_ms"] - e["client_commit_to_overlay_ms"]
+        for e in subtitles
+        if isinstance(e.get("client_seen_to_overlay_ms"), (int, float))
+        and isinstance(e.get("client_commit_to_overlay_ms"), (int, float))
+        and e["client_seen_to_overlay_ms"] >= e["client_commit_to_overlay_ms"]
+    ]
+
+    def line(name: str, vals: list) -> None:
+        if vals:
+            print(f"  {name:24} median {fmt_ms(pct(vals,0.5))}  "
+                  f"p90 {fmt_ms(pct(vals,0.9))}  p99 {fmt_ms(pct(vals,0.99))}  "
+                  f"max {fmt_ms(max(vals))}")
+
     print("== LATENCY (overlay output delay) ==")
-    if seen:
-        print(f"  seen -> overlay   : median {fmt_ms(pct(seen,0.5))}  "
-              f"p90 {fmt_ms(pct(seen,0.9))}  max {fmt_ms(max(seen))}")
-    if commit:
-        print(f"  commit -> overlay : median {fmt_ms(pct(commit,0.5))}  "
-              f"p90 {fmt_ms(pct(commit,0.9))}  max {fmt_ms(max(commit))}")
+    line("TOTAL  seen->overlay", seen)
+    line("SEGMENTER seen->commit", segmenter)
+    line("QUEUE+MODEL commit->ovl", commit)
+    seg_slow = [v for v in segmenter if v > HIGH_LATENCY_MS]
+    qm_slow = [v for v in commit if v > HIGH_LATENCY_MS]
+    print(f"  segmenter waits > {fmt_ms(HIGH_LATENCY_MS)}: {len(seg_slow)} "
+          f"({100*len(seg_slow)/max(1,len(segmenter)):.1f}%)  "
+          f"<- fix here = sentence-stabilize ceiling")
+    print(f"  queue+model > {fmt_ms(HIGH_LATENCY_MS)}: {len(qm_slow)} "
+          f"({100*len(qm_slow)/max(1,len(commit)):.1f}%)  "
+          f"<- fix here = faster model / queue cap")
     high = [e for e in subtitles
             if isinstance(e.get("client_seen_to_overlay_ms"), (int, float))
             and e["client_seen_to_overlay_ms"] > HIGH_LATENCY_MS]
-    print(f"  high-latency rows (> {fmt_ms(HIGH_LATENCY_MS)}): {len(high)} "
+    print(f"  worst rows (total > {fmt_ms(HIGH_LATENCY_MS)}): {len(high)} "
           f"({100*len(high)/max(1,len(seen)):.1f}%)")
     for e in sorted(high, key=lambda x: -x["client_seen_to_overlay_ms"])[:EXAMPLES]:
-        en = (e.get("raw_en") or e.get("text") or "")[:70]
-        print(f"    - {fmt_ms(e['client_seen_to_overlay_ms'])}  {en}")
+        total = e["client_seen_to_overlay_ms"]
+        cm = e.get("client_commit_to_overlay_ms")
+        sg = f"seg {fmt_ms(total-cm)}/q+m {fmt_ms(cm)}" if isinstance(cm, (int, float)) else ""
+        en = (e.get("raw_en") or e.get("text") or "")[:55]
+        print(f"    - {fmt_ms(total):>6} [{sg}]  {en}")
     print()
 
     # ---- 3. DUPLICATES in the overlay stream -----------------------------
