@@ -431,6 +431,7 @@ class OllamaTranslator(Translator):
 _PLACEHOLDER_KEYWORDS = (
     "название", "имя", "company", "name", "speaker", "person",
     "имени", "company_name", "placeholder", "фио", "company name",
+    "неразборчиво", "не слышно", "inaudible", "unclear",
 )
 
 
