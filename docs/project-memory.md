@@ -151,3 +151,22 @@ Known gap (intentionally not closed):
 Validation:
 - `powershell -ExecutionPolicy Bypass -File scripts\run_all_tests.ps1` -> ALL TESTS PASSED
 - `python scripts\analyze_overlay_log.py --check logs\translations_20260531_021647.jsonl` -> CHECK PASSED
+
+## 2026-05-31: Extract content.js pure predicates into segment-utils.js
+
+Context:
+- The 2026-05-31 suite redesign left the content.js helper predicates untested because they lived inside the content.js IIFE and were not exported. The operator approved a careful extraction (will do a live run afterwards).
+
+Changed:
+- New `extension/src/segment-utils.js` exposes `window.YaSegmentUtils` with 12 pure predicates moved verbatim from content.js: isFastPunctuation, looksIncomplete, hasHardIncompleteTail, isSentenceBoundary, splitFirstCompleteSentence, wordsOf, normalizedWords, overlapRatio, shouldDropChunk, isLikelyContinuation, isUnsafeFinalFragment, isHoldableFragment.
+- `content.js`: deleted those 12 definitions and bound the same names via `const { ... } = window.YaSegmentUtils` near the top, so every existing call site is unchanged. `shouldWaitForFullerSentence` stays in content.js (it depends on settings + *_STALE_MS constants).
+- `manifest.json`: load `src/segment-utils.js` before `src/content.js`.
+- New `scripts/test_segment_utils.js` (24 assertions) wired into `run_all_tests.ps1`.
+
+Safety:
+- Proved byte-identical: extracted each of the 12 bodies from `git show HEAD:...content.js` and from segment-utils.js; after normalizing the `window.YaSubtitleNormalizeText`->`normalize` token and whitespace, all 12 match exactly. `normalize()` in the module delegates to `window.YaSubtitleNormalizeText` when present (always true in the extension), so runtime behavior is unchanged.
+- This closes the previously-documented "known gap". Only `shouldWaitForFullerSentence` remains content.js-local (not pure).
+
+Validation:
+- `node scripts\test_segment_utils.js` (24/24), full `run_all_tests.ps1` -> ALL TESTS PASSED.
+- Pending: operator live run (YouTube + Yandex) to confirm no regression on the real read path.

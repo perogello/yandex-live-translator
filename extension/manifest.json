@@ -33,6 +33,7 @@
         "src/subtitle-reader.js",
         "src/subtitle-reader-youtube.js",
         "src/segmenter.js",
+        "src/segment-utils.js",
         "src/translator-client.js",
         "src/content.js"
       ],
