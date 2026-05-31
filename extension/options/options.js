@@ -13,6 +13,7 @@
     "enabled",
     "overlayEnabled",
     "debug",
+    "captureRawReads",
     "mockMode",
     "showTranslated",
     "showOriginal",

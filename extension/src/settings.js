@@ -16,6 +16,10 @@
     subtitleSource: "auto",
     enabled: true,
     debug: false,
+    // Diagnostics only: when true, each distinct raw caption read is POSTed to
+    // the server (event:"raw_read") to build a segmenter corpus. Default OFF so
+    // an always-on debug panel never incurs this network/log overhead.
+    captureRawReads: false,
     mockMode: false,
     overlayEnabled: true,
     showOriginal: false,

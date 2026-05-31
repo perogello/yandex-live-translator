@@ -866,7 +866,7 @@
     // Diagnostics (debug only): capture each distinct raw YouTube CC read so
     // we can rebuild the real rolling-window sequence for segmenter work.
     // Does not touch translation behavior.
-    if (settings.debug && usingYouTubeReader && text && text !== lastCapturedRead) {
+    if (settings.captureRawReads && usingYouTubeReader && text && text !== lastCapturedRead) {
       lastCapturedRead = text;
       translator.captureRawRead(text, "youtube");
     }
