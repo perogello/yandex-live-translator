@@ -21,11 +21,13 @@ function Run-Test($name, $cmd) {
 Run-Test "ingestion: youtube-reader" "node scripts/test_youtube_reader.js"
 Run-Test "ingestion: segment-utils"  "node scripts/test_segment_utils.js"
 Run-Test "segmentation: segmenter"   "node scripts/test_segmenter.js"
+Run-Test "segmentation: yt-stitcher" "node scripts/test_youtube_stitcher.js"
 Run-Test "overlay: dedup"            "node scripts/test_overlay.js"
 
 # JS syntax checks (catch broken edits to the content scripts)
 Run-Test "check content.js"      "node --check extension/src/content.js"
 Run-Test "check segment-utils.js" "node --check extension/src/segment-utils.js"
+Run-Test "check yt-stitcher.js"  "node --check extension/src/youtube-stitcher.js"
 Run-Test "check segmenter.js"    "node --check extension/src/segmenter.js"
 Run-Test "check overlay.js"      "node --check extension/src/overlay.js"
 

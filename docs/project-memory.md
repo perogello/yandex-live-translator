@@ -257,3 +257,25 @@ Stage 0 implementation (behind the extension debug flag, zero behavior change):
 - Collect: enable Debug in options, run ~5 min on YouTube with CC, send the log. Raw reads = event:"raw_read".
 
 Validation: node --check (content.js, translator-client.js), py_compile app/main.py, full run_all_tests.ps1 -> ALL PASSED.
+
+## 2026-05-31: Stage 1 - YouTube stitcher (kills seam/choppiness)
+
+Context:
+- Corpus captured (4583 raw reads, log 134428). Baseline replay confirmed the seam is severe: raw segmenter 40% seam, real post-cleanup 12% seam, 36% mid-sentence continuations.
+- Root cause (verified on real reads, e.g. the "June 27th" sequence): the rolling window itself is CLEAN (suffix==prefix overlap works for growth and front-scroll). The seam came from the shared segmenter FORCE-committing a mid-sentence fragment by age while the sentence was still completing; the next read then re-committed it in full.
+
+Changed (YouTube-isolated; Yandex untouched):
+- New `extension/src/youtube-stitcher.js` (`window.YouTubeStitcher`): reconstructs one continuous transcript from the rolling window (append only the new tail via suffix==prefix overlap; handles front-scroll and the tail-inside-read scroll case) and commits on SENTENCE boundaries. Patient with an unfinished tail (only force at 9s / >=10 words), plus a hard length cap (36 words) so un-punctuated auto-CC never holds/drops. Reuses segment-utils predicates + collapseRepeatedPhrases.
+- `content.js`: instantiate the stitcher only when the YouTube reader is active; `liveSource = youtubeStitcher || segmenter`. handleText, the idle-flush, and resetLiveContext use `liveSource`. The Yandex CDP path (handleCdpText) still uses the shared segmenter directly.
+- `manifest.json`: load youtube-stitcher.js before content.js.
+- New `scripts/test_youtube_stitcher.js` (5 cases) + `scripts/ab_youtube_stitcher.js` (corpus A/B). Both wired/available; test added to run_all_tests.ps1.
+
+A/B on the real corpus (134428), stitcher vs the log's actual live commits:
+- seam >=4w: 12% -> 0%
+- mid-sentence continuations: 36% -> 1%
+- internal-repeat: 0% -> 0%
+- content coverage baseline->stitcher: 99.9% (no lost text)
+
+Trade: commits whole sentences, so per-sentence latency = sentence speak-time + model (no artificial extra wait; force caps the tail). Quality over choppiness, as intended.
+
+Validation: full run_all_tests.ps1 -> ALL TESTS PASSED. Pending: operator live YouTube run to confirm in the wild; trivial revert (one path switch) if worse.

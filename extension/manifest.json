@@ -34,6 +34,7 @@
         "src/subtitle-reader-youtube.js",
         "src/segmenter.js",
         "src/segment-utils.js",
+        "src/youtube-stitcher.js",
         "src/translator-client.js",
         "src/content.js"
       ],

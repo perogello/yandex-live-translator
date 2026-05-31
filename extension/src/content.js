@@ -77,6 +77,15 @@
   const reader = chooseReader();
   const translator = new window.YaTranslatorClient(settings);
   const segmenter = window.YaSubtitleSegmenter ? new window.YaSubtitleSegmenter(settings) : null;
+  // YouTube CC is a rolling-scroll window and needs its own stitcher (commits
+  // whole sentences, no seam). Yandex keeps the shared segmenter untouched.
+  const usingYouTubeSource = reader instanceof (window.YouTubeSubtitleReader || function () {});
+  const youtubeStitcher = usingYouTubeSource && window.YouTubeStitcher
+    ? new window.YouTubeStitcher(settings)
+    : null;
+  // The active source for direct live reads (handleText): stitcher on YouTube,
+  // otherwise the shared segmenter.
+  const liveSource = youtubeStitcher || segmenter;
 
   let state = State.INIT;
   let lastRawText = "";
@@ -363,6 +372,9 @@
     clearCdpSegment();
     if (segmenter) {
       segmenter.reset();
+    }
+    if (youtubeStitcher) {
+      youtubeStitcher.reset();
     }
     translator.resetContext();
     debugPanel.update({ queue: 0, skipped: reason || "context reset" });
@@ -812,8 +824,8 @@
     // sentences. This keeps multi-word terms intact (e.g. "Liquid Glass"
     // was split across windows and mistranslated as "жидкость"/"позвоните")
     // and removes overlapping/fragmented chunks and mid-sentence capitals.
-    if (segmenter) {
-      const commits = segmenter.push(normalized, now);
+    if (liveSource) {
+      const commits = liveSource.push(normalized, now);
       if (commits.length) {
         setState(State.LISTENING, { en: commits[commits.length - 1], segmenter: "commit" });
       } else {
@@ -874,15 +886,15 @@
         if (Date.now() - lastAnySubtitleAt > 5000) {
           clearCdpSegment();
           window.clearTimeout(cdpSegmentTimer);
-          if (segmenter) {
-            const commits = segmenter.flush(Date.now());
+          if (liveSource) {
+            const commits = liveSource.flush(Date.now());
             for (const commit of commits) {
               if (looksIncomplete(commit) || wordsOf(commit).length < 6) {
                 continue;
               }
               enqueueTranslation(commit);
             }
-            segmenter.reset();
+            liveSource.reset();
           }
           pendingFragment = "";
           pendingFragmentAt = 0;
