@@ -34,6 +34,7 @@
   // file calls them by their original names unchanged.
   const _segUtils = window.YaSegmentUtils || {};
   const {
+    collapseRepeatedPhrases,
     isFastPunctuation,
     looksIncomplete,
     hasHardIncompleteTail,
@@ -354,6 +355,10 @@
   function cleanSourceForTranslation(text) {
     let value = collapseRepeatedSentences(text);
     value = removeRepeatedTail(value);
+    // Collapse non-adjacent phrase repeats the rolling-window stitch can
+    // leave behind on YouTube CC (e.g. "A B C ... A B C"). removeRepeatedTail
+    // only handles adjacent repeats; this catches the separated ones.
+    value = collapseRepeatedPhrases(value);
     value = stripOverlapPrefix(lastSentText, value);
     return window.YaSubtitleNormalizeText(value);
   }

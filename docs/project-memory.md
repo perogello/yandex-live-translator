@@ -170,3 +170,25 @@ Safety:
 Validation:
 - `node scripts\test_segment_utils.js` (24/24), full `run_all_tests.ps1` -> ALL TESTS PASSED.
 - Pending: operator live run (YouTube + Yandex) to confirm no regression on the real read path.
+
+## 2026-05-31: Fix garble regression from YouTube->segmenter routing
+
+Context:
+- First post-fix live YouTube run: `logs/translations_20260531_033601.jsonl`. Compared against the pre-fix run `021647`.
+- The routing fix DID help (Liquid Glass intact live, continuations 47%->35%) but the metric analyzer plus a custom phrase-repeat scan exposed a REGRESSION the simulation had missed (the sim was fed pre-committed coarse chunks, not raw polls):
+  - internal-repeat (garbled commits, a 3+ word phrase duplicated inside one commit): pre-fix 0% -> post-fix 6% (45/753). Example: "I'm going to start with two things that are foundational going to start with two".
+  - seam overlap (>=4 words shared between consecutive commits): 10% -> 12%.
+  - latency tail: seen->overlay max 5.3s -> 14.8s, high-latency(>4s) 0.3% -> 4.6%. This tail is the segmenter waiting for whole sentences (inherent cost of coherent output); only ~0.4% are truly bad (>8s). Left as an accepted trade for now.
+- Root cause of garble: the segmenter (built for Yandex grow-then-reset windows) hits its reset branch on YouTube's rolling-scroll window when overlap detection fails, concatenating old segment + new window.
+
+Changed:
+- New pure helper `collapseRepeatedPhrases(text)` in `segment-utils.js`: finds a 3+ word phrase repeated non-adjacently inside one commit and removes the duplicate WITHOUT losing content - if little follows the 2nd occurrence it is a trailing re-append (keep the full first version), otherwise a revision (keep the later, more complete version). removeRepeatedTail only handled adjacent repeats.
+- `content.js` `cleanSourceForTranslation()` calls it (after removeRepeatedTail, before stripOverlapPrefix), so it cleans every enqueue path. No model/segmenter-timing change.
+- 4 new assertions in `scripts/test_segment_utils.js`.
+
+Replay on `033601`:
+- 46 rows rewritten; internal-repeat 45 -> 0; content preserved (revision cases keep the longer version, e.g. "...all trails can use our ondevice models...").
+
+Validation:
+- full `run_all_tests.ps1` -> ALL TESTS PASSED.
+- Pending: next live YouTube run + `analyze_overlay_log.py --check` to confirm garble is gone in the wild.

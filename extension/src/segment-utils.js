@@ -288,7 +288,47 @@
     return /^(and now i'?m wondering|and now i am wondering|and lately|where more of|currently use|currently using|a real impact)\b/.test(value);
   }
 
+  // Collapse a multi-word phrase that the live rolling-window stitch
+  // duplicated inside one commit, e.g. YouTube CC re-appends the tail of a
+  // line so the segmenter emits "A B C ... A B C". We keep the complete
+  // version and drop the duplicate without losing unique content:
+  //   - if little text follows the 2nd occurrence -> trailing re-append,
+  //     keep everything up to the 2nd occurrence (the full first version)
+  //   - otherwise -> a revision, keep the later (more complete) occurrence
+  // Only acts on phrases of 3+ words, so ordinary repeated words are safe.
+  function collapseRepeatedPhrases(text) {
+    let w = String(text || "").trim().split(/\s+/).filter(Boolean);
+    const key = (x) => x.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+    let guard = 0;
+    let changed = true;
+    while (changed && guard < 20) {
+      guard += 1;
+      changed = false;
+      const n = w.length;
+      outer:
+      for (let s = Math.min(8, Math.floor(n / 2)); s >= 3; s -= 1) {
+        for (let i = 0; i + 2 * s <= n; i += 1) {
+          const a = w.slice(i, i + s).map(key).join(" ");
+          for (let j = i + s; j + s <= n; j += 1) {
+            if (w.slice(j, j + s).map(key).join(" ") === a) {
+              const afterSecond = n - (j + s);
+              if (afterSecond <= s) {
+                w = w.slice(0, j);
+              } else {
+                w = w.slice(0, i).concat(w.slice(j));
+              }
+              changed = true;
+              break outer;
+            }
+          }
+        }
+      }
+    }
+    return w.join(" ");
+  }
+
   window.YaSegmentUtils = {
+    collapseRepeatedPhrases,
     isFastPunctuation,
     looksIncomplete,
     hasHardIncompleteTail,

@@ -70,6 +70,21 @@ eq("keep good sentence", U.shouldDropChunk("We shipped the new model to develope
 eq("hold short fragment", U.isHoldableFragment("just a moment"), true);
 eq("do not hold complete sentence", U.isHoldableFragment("We shipped the new model to developers today."), false);
 
+// collapseRepeatedPhrases (kills the YouTube rolling-window garble without
+// losing unique content)
+eq("collapse trailing re-append keeps full first version",
+   U.collapseRepeatedPhrases("I'm going to start with two things that are foundational going to start with two"),
+   "I'm going to start with two things that are foundational");
+eq("collapse keeps later when it is more complete (revision)",
+   U.collapseRepeatedPhrases("Our goal is a beautiful. Our goal is a beautiful new design that brings joy and delight today."),
+   "Our goal is a beautiful new design that brings joy and delight today.");
+eq("collapse leaves clean text untouched",
+   U.collapseRepeatedPhrases("an entirely new expressive material we call liquid glass."),
+   "an entirely new expressive material we call liquid glass.");
+eq("collapse does not touch short repeated words",
+   U.collapseRepeatedPhrases("very very good results indeed"),
+   "very very good results indeed");
+
 if (failed > 0) {
   console.error(`\n${failed} segment-utils test(s) failed`);
   process.exit(1);
