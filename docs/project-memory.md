@@ -279,3 +279,20 @@ A/B on the real corpus (134428), stitcher vs the log's actual live commits:
 Trade: commits whole sentences, so per-sentence latency = sentence speak-time + model (no artificial extra wait; force caps the tail). Quality over choppiness, as intended.
 
 Validation: full run_all_tests.ps1 -> ALL TESTS PASSED. Pending: operator live YouTube run to confirm in the wild; trivial revert (one path switch) if worse.
+
+## 2026-05-31: Decouple raw-read capture from the debug flag
+
+Context:
+- Operator keeps the Debug panel ALWAYS on. The Stage 0 raw-read capture was gated on settings.debug, so it ran constantly on YouTube (~1.6 POST/sec to the server + ~12x log bloat), competing with /translate and likely contributing to the latency seen in log 134428.
+- The debug PANEL itself is cheap (local DOM textContent only, no network/model) and is fine to leave on.
+
+Changed:
+- New setting `captureRawReads` (default FALSE) in settings.js, with an options checkbox "Capture raw reads (diagnostics; keep OFF for normal use)".
+- content.js: the raw-read trigger now checks `settings.captureRawReads` instead of `settings.debug`.
+- Result: always-on debug is overhead-free; raw-read corpus capture only runs when explicitly enabled.
+
+Operator guidance:
+- Debug panel: fine to leave on (no latency cost).
+- Capture raw reads: keep OFF for normal use / broadcasts; enable only when asked to collect a segmenter corpus.
+
+Validation: node --check (content.js, settings.js, options.js); full run_all_tests.ps1 -> ALL TESTS PASSED.
