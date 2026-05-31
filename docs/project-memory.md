@@ -214,3 +214,25 @@ Takeaways:
 Validation:
 - `node --check extension/src/content.js`; full `run_all_tests.ps1` -> ALL TESTS PASSED.
 - Pending: next run's seen->overlay tail should drop to <=12s (artifact bounded).
+
+## 2026-05-31: Translation-quality review of 122432; fix English-prefix leak
+
+Context:
+- Operator asked for a qualitative review of the actual Russian (quality, terms, duplicates, speed), not just metrics. Read a long contiguous stretch of `122432`.
+
+What is good:
+- Full sentences are natural, fluent Russian; product terms held correctly (Liquid Glass, visionOS, Apple silicon, iOS 7, Retina).
+- Speed: real output latency (commit->overlay) ~2s median, <5s max.
+- Garbled internal-repeats 0% live; drops 0%; overlay duplicates ~0.9%.
+
+Problems found (scanned the whole log):
+- English leak at line start (2 lines): a leaked sentence-tail word echoed before the translation, e.g. "use. iOS 7 представила...", "layout. Теперь...". The existing _strip_lone_english_prefix missed these because the next token was a kept term ("iOS"), not Russian.
+- "Material" left capitalized once ("...приложением. Material динамически...") - model treats the common noun as a product name. 1 occurrence; left as-is (an output rule risks Material Design / is low value).
+- Seam-overlap choppiness (~12% of commits share boundary words with the previous), producing some redundant/choppy lines ("доступных, чем"; "Этап готов к использованию в течение дня."). This is the rolling-window seam, not garble. Needs segmenter-level work; deferred (higher risk).
+
+Changed:
+- `ollama.py` `_strip_lone_english_prefix`: added a second branch that strips a leaked English word carrying trailing punctuation ("use.", "touch.", "layout.") when the source also starts with it, even if the real translation begins with a kept term. Verified it does NOT strip a legitimately leading kept term (Liquid Glass) or a leading Russian word.
+- 2 new assertions in `scripts/test_translation_postprocess.py`.
+
+Validation:
+- full `run_all_tests.ps1` -> ALL TESTS PASSED.

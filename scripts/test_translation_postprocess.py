@@ -53,6 +53,14 @@ eq("drop unbalanced quote",
    clean_ollama_response('Он сказал "привет'), "Он сказал привет")
 eq("drop echoed English word when source starts with it",
    clean_ollama_response("so мы начинаем", source="so we begin"), "мы начинаем")
+eq("drop leaked sentence-tail word before a kept term",
+   clean_ollama_response("use. iOS 7 представила упрощенный дизайн.",
+                         source="use. iOS 7 introduced a simplified design."),
+   "iOS 7 представила упрощенный дизайн.")
+eq("keep kept-term that legitimately starts the line",
+   clean_ollama_response("Liquid Glass — полупрозрачный материал.",
+                         source="Liquid glass is translucent material."),
+   "Liquid Glass — полупрозрачный материал.")
 eq("strip model-inserted placeholder",
    clean_ollama_response("Более [неразборчиво] запросов."), "Более запросов.")
 

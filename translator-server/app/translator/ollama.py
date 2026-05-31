@@ -482,13 +482,21 @@ def _balance_punctuation(value: str) -> str:
 def _strip_lone_english_prefix(source: str, value: str) -> str:
     if not value:
         return value
-    match = re.match(r"^([a-z][a-z'\-]*)\s+([А-ЯЁа-яёA-Z])", value)
-    if not match:
-        return value
-    en_word = match.group(1).lower()
     source_lower = source.strip().lower()
-    if source_lower.startswith(en_word + " ") or source_lower.startswith(en_word + ","):
-        return value[match.start(2):].lstrip()
+    # Case 1: a lone English word echoed before a Russian/Capitalized token
+    # (e.g. source "so we begin" -> "so мы начинаем").
+    match = re.match(r"^([a-z][a-z'\-]*)\s+([А-ЯЁа-яёA-Z])", value)
+    if match:
+        en_word = match.group(1).lower()
+        if source_lower.startswith(en_word + " ") or source_lower.startswith(en_word + ","):
+            return value[match.start(2):].lstrip()
+    # Case 2: a leaked sentence-tail English word WITH trailing punctuation
+    # ("use.", "touch.", "layout.") echoed before the real translation, which
+    # may itself begin with a kept term like "iOS". Only strip when the source
+    # also starts with that exact word+punctuation.
+    tail = re.match(r"^([a-z][a-z'\-]*[.,!?:;]+)\s+(\S)", value)
+    if tail and source_lower.startswith(tail.group(1).lower()):
+        return value[tail.start(2):].lstrip()
     return value
 
 
