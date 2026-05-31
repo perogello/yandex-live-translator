@@ -1172,23 +1172,45 @@
 
   function handleText(text) {
     const normalized = window.YaSubtitleNormalizeText(text);
-    if (normalized && normalized !== lastRawText) {
-      const now = Date.now();
-      if (lastAnySubtitleAt && now - lastAnySubtitleAt > getContextResetGapMs()) {
-        resetLiveContext("context gap");
-      }
-      lastAnySubtitleAt = now;
-      const prevWords = lastRawText.split(/\s+/).filter(Boolean).length;
-      const nextWords = normalized.split(/\s+/).filter(Boolean).length;
-      const isMeaningfulBoundary = /[.!?]$/.test(lastRawText.trim()) || nextWords + 2 < prevWords;
-      if (lastRawText && !normalized.includes(lastRawText) && lastRawText !== lastSentText && isMeaningfulBoundary) {
-        enqueueTranslation(lastRawText);
-      }
-      lastRawText = normalized;
-      publishInputActivity(normalized);
-      setState(State.LISTENING, { en: normalized });
-      scheduleTranslation(normalized);
+    if (!normalized || normalized === lastRawText) {
+      return;
     }
+    const now = Date.now();
+    if (lastAnySubtitleAt && now - lastAnySubtitleAt > getContextResetGapMs()) {
+      resetLiveContext("context gap");
+    }
+    lastAnySubtitleAt = now;
+    lastRawText = normalized;
+    publishInputActivity(normalized);
+
+    // Route live reads (YouTube CC, open-shadow Yandex) through the same
+    // sliding-window segmenter the CDP path uses. Readers deliver a rolling
+    // caption window; the segmenter stitches the overlaps and commits whole
+    // sentences. This keeps multi-word terms intact (e.g. "Liquid Glass"
+    // was split across windows and mistranslated as "жидкость"/"позвоните")
+    // and removes overlapping/fragmented chunks and mid-sentence capitals.
+    if (segmenter) {
+      const commits = segmenter.push(normalized, now);
+      if (commits.length) {
+        setState(State.LISTENING, { en: commits[commits.length - 1], segmenter: "commit" });
+      } else {
+        setState(State.LISTENING, { en: normalized, segmenter: "read" });
+      }
+      for (const commit of commits) {
+        enqueueTranslation(commit);
+      }
+      return;
+    }
+
+    // Fallback when the segmenter is unavailable: legacy naive debounce path.
+    const prevWords = lastSentText.split(/\s+/).filter(Boolean).length;
+    const nextWords = normalized.split(/\s+/).filter(Boolean).length;
+    const isMeaningfulBoundary = /[.!?]$/.test(lastSentText.trim()) || nextWords + 2 < prevWords;
+    if (lastSentText && !normalized.includes(lastSentText) && isMeaningfulBoundary) {
+      enqueueTranslation(lastSentText);
+    }
+    setState(State.LISTENING, { en: normalized });
+    scheduleTranslation(normalized);
   }
 
   async function tick() {

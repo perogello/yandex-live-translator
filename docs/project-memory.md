@@ -101,3 +101,25 @@ Validation:
 - `cd translator-server; .\.venv\Scripts\python.exe -c "import yaml; yaml.safe_load(open('app/glossary/glossary.yaml',encoding='utf-8'))"`
 - `python scripts\analyze_overlay_log.py logs\_otherPC_live_extracted\translations_20260519_182255.jsonl`
 - `python scripts\simulate_overlay_dedup.py logs\_otherPC_live_extracted\translations_20260519_182255.jsonl` (0 content loss)
+
+## 2026-05-31: Route YouTube CC through the segmenter (fix overlap/fragmentation)
+
+Context:
+- Log `translations_20260531_021647.jsonl` was a real WWDC run on YouTube CC in "короткий" mode. Metrics were excellent (0 drops, median 2.1s, max 5.3s, 0.6% overlay dups) but the TEXT had clear problems:
+  - "Liquid Glass" split across caption windows and mistranslated ("we call liquid" -> "...жидкость"; "call liquid glass." -> "позвоните в Liquid Glass").
+  - 28% of chunks repeated >=2 words of the previous chunk (visible repeats).
+  - 47% of chunks were mid-sentence continuations (choppy fragments, wrong mid-sentence capitals).
+  - Common words like "the material" left in English as "Material".
+- Root cause: the live-reader path `handleText()` in `content.js` did NOT use `SubtitleSegmenter`; it sent the whole rolling caption window after a debounce. Only the CDP path (`handleCdpText`) used the segmenter, which is why the Yandex CDP broadcast log was clean while YouTube was fragmented.
+
+Changed:
+- `extension/src/content.js` `handleText()`: route live reads (YouTube CC and open-shadow Yandex) through the same `segmenter.push()` the CDP path uses, enqueueing its sentence-level commits. Kept the legacy naive debounce only as a fallback when no segmenter is available.
+- No change to model, prompt, glossary, segmentation thresholds, queue policy, or the CDP path.
+
+Validation (simulation on the real log via `scripts/sim_youtube_segmenter.js`, replaying the log's caption windows through the actual segmenter):
+- chunks 791 -> 371 (whole sentences)
+- overlapping-previous 28% -> 1%
+- mid-sentence continuations 47% -> 9%
+- "Liquid Glass" now committed intact: "...an entirely new expressive material we call liquid glass."
+- Residual (minor, pre-existing segmenter behavior): ~9% still start lowercase; 2/371 had a doubled word at a stitch boundary ("concentric concentric"). Left as-is (segmenter is tested code; risk not worth 2 cases).
+- `node --check extension\src\content.js`; `node scripts\test_segmenter.js`; `node scripts\test_youtube_reader.js` all pass.
