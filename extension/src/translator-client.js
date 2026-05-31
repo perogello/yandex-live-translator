@@ -81,6 +81,20 @@
       }
     }
 
+    async captureRawRead(text, source) {
+      // Diagnostics only (debug flag): record a raw caption read so we can
+      // rebuild real rolling-window sequences for segmenter work.
+      try {
+        await fetch(`${this.settings.backendUrl.replace(/\/$/, "")}/debug/raw-read`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: text || "", source: source || "", ts: Date.now() })
+        });
+      } catch (_) {
+        // Best-effort; never affects translation.
+      }
+    }
+
     async resetContext() {
       try {
         await fetch(`${this.settings.backendUrl.replace(/\/$/, "")}/context/reset`, {

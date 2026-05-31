@@ -236,3 +236,24 @@ Changed:
 
 Validation:
 - full `run_all_tests.ps1` -> ALL TESTS PASSED.
+
+## 2026-05-31: YouTube segmenter plan (Stage 0 - raw-read capture)
+
+Decision:
+- Fix YouTube seam-overlap/choppiness with a YouTube-ISOLATED path; do NOT touch the shared segmenter's Yandex behavior (works well, higher risk). YouTube = rolling-scroll window; Yandex = grow-then-reset; genuinely different, so split handling.
+- Root cause of seams: appendSlidingWindow matches the LAST raw read's tail vs the new read's head; on a scrolling window that often fails and hits the destructive `reset` branch, dumping context and committing a fragment ("The stage", "доступных, чем").
+
+Plan (staged, in a worktree, A/B on real data before merge):
+- Stage 0 (DONE): capture real raw reads to build a corpus (can't fix blind - logs only had commits).
+- Stage 1: reconstruct the new suffix by aligning the current read against the END of the accumulated segment (not just the last read); remove the destructive reset.
+- Stage 2: seam guard - strip a new commit's leading words duplicating the previous commit's tail.
+- Stage 3: regression tests from the captured corpus (+ content-loss check).
+- Stage 4: A/B old vs new on the corpus (target seam>=4w 12% -> <5%, internal-repeat stays 0%, no content loss), one live run, then merge.
+
+Stage 0 implementation (behind the extension debug flag, zero behavior change):
+- main.py: POST /debug/raw-read writes event:"raw_read" into the same per-run translations JSONL.
+- translator-client.js: captureRawRead(text, source).
+- content.js: in tick, when settings.debug and YouTube reader active, send each DISTINCT raw read.
+- Collect: enable Debug in options, run ~5 min on YouTube with CC, send the log. Raw reads = event:"raw_read".
+
+Validation: node --check (content.js, translator-client.js), py_compile app/main.py, full run_all_tests.ps1 -> ALL PASSED.

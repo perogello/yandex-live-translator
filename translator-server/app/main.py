@@ -137,6 +137,15 @@ class ActivityRequest(BaseModel):
     pending_for_sec: float = 8.0
 
 
+class RawReadRequest(BaseModel):
+    # Diagnostics only: a single raw caption read from a source reader, used
+    # to build a real rolling-window corpus for segmenter work. Off unless the
+    # extension debug flag is on.
+    text: str = ""
+    source: str = ""
+    ts: float = 0.0
+
+
 def normalize_text(text: str) -> str:
     return re.sub(r"\s+", " ", text.replace("\u00a0", " ")).strip()
 
@@ -243,6 +252,22 @@ async def update_subtitle(request: SubtitleUpdateRequest) -> dict:
 @app.post("/activity")
 async def update_activity(request: ActivityRequest) -> dict:
     mark_translation_activity(request.original, pending_for_sec=max(1.0, min(request.pending_for_sec, 20.0)))
+    return {"ok": True}
+
+
+@app.post("/debug/raw-read")
+async def debug_raw_read(request: RawReadRequest) -> dict:
+    # Append a raw reader read to the same per-run log (event "raw_read").
+    # Used to capture real YouTube rolling-window sequences for segmenter
+    # development. No effect on translation.
+    translation_logger.write(
+        {
+            "event": "raw_read",
+            "text": normalize_text(request.text),
+            "source": request.source,
+            "client_read_ms": int(request.ts or 0),
+        }
+    )
     return {"ok": True}
 
 

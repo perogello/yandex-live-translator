@@ -80,6 +80,7 @@
 
   let state = State.INIT;
   let lastRawText = "";
+  let lastCapturedRead = "";
   let lastSentText = "";
   let lastTranslation = "";
   let lastTranslationActivityAt = 0;
@@ -849,6 +850,15 @@
     // closed shadow roots in the Yandex subtitle widget). For YouTube CC
     // there is no closed shadow root, so skip it.
     const usingYouTubeReader = reader instanceof (window.YouTubeSubtitleReader || function () {});
+
+    // Diagnostics (debug only): capture each distinct raw YouTube CC read so
+    // we can rebuild the real rolling-window sequence for segmenter work.
+    // Does not touch translation behavior.
+    if (settings.debug && usingYouTubeReader && text && text !== lastCapturedRead) {
+      lastCapturedRead = text;
+      translator.captureRawRead(text, "youtube");
+    }
+
     if (!text && settings.enableCdpFallback && !usingYouTubeReader) {
       const cdpResult = await fetchCdpText();
       if (cdpResult.text) {
