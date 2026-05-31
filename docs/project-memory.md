@@ -192,3 +192,25 @@ Replay on `033601`:
 Validation:
 - full `run_all_tests.ps1` -> ALL TESTS PASSED.
 - Pending: next live YouTube run + `analyze_overlay_log.py --check` to confirm garble is gone in the wild.
+
+## 2026-05-31: Garble fix confirmed live; fix seen->overlay latency metric artifact
+
+Context:
+- Third live YouTube run `logs/translations_20260531_122432.jsonl` compared with `033601` and `021647`.
+- collapseRepeatedPhrases confirmed working in the wild: internal-repeat (garbled commits) 6.0% (033601) -> 0.0% (122432). Drops 0%, overlay duplicates 0.9%. CHECK PASSED.
+
+Latency investigation (operator specifically asked about processing + output time):
+- REAL processing + output time = commit->overlay (model + queue + render). Rock stable across all three logs: median ~1.6-2.0s, p90 ~2.2-3.3s, max ~4.5-4.9s. This is the honest answer: output latency is excellent and not regressing.
+- The scary seen->overlay tail (max 31.9s, "you use every day.") is a MEASUREMENT ARTIFACT, not real delay. Proof: that phrase recurred ~28s earlier in the talk; `firstSeenFor` fuzzy-matched the stale occurrence and reported a 30s wait (round numbers 30000/14001/13000 gave it away). The segmenter routing made this worse only because it accumulates more source-seen keys for the fuzzy match to hit.
+
+Changed:
+- `content.js` `firstSeenFor`: added `FIRST_SEEN_MAX_LOOKBACK_MS = 12000` cap. A prior sighting older than 12s is ignored (a live sentence finishes building in a few seconds; older = a recurring phrase, not the same utterance). Applies to both the exact-key and fuzzy-match branches. Telemetry-only value (never used for behavior), so zero behavior risk; it just keeps the seen->overlay metric honest going forward.
+
+Takeaways:
+- Real output latency: ~2s median, <5s worst (commit->overlay). Good.
+- Garble regression from the segmenter routing: fixed (0% live).
+- Latency "regression" in seen->overlay was a metric artifact, now capped.
+
+Validation:
+- `node --check extension/src/content.js`; full `run_all_tests.ps1` -> ALL TESTS PASSED.
+- Pending: next run's seen->overlay tail should drop to <=12s (artifact bounded).

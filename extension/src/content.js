@@ -108,6 +108,10 @@
   const SOFT_FRAGMENT_STALE_MS = 8200;
   const RECENT_TEXT_TTL_MS = 45000;
   const MAX_TRANSLATION_QUEUE = 2;
+  // Max age of a prior sighting still counted as the same utterance for the
+  // seen->overlay latency metric. Beyond this it is a recurring phrase, not a
+  // real wait, so we ignore it to keep the metric honest.
+  const FIRST_SEEN_MAX_LOOKBACK_MS = 12000;
   function getContextResetGapMs() {
     const value = Number(settings && settings.contextResetGapMs);
     if (!Number.isFinite(value) || value < 4000) {
@@ -209,12 +213,23 @@
     }
     const now = Date.now();
     pruneSourceSeenKeys(now);
-    if (sourceSeenKeys.has(key)) {
-      return sourceSeenKeys.get(key);
+    // Only treat a prior sighting as "first seen" if it is recent. A live
+    // sentence finishes building within a few seconds, so a match older than
+    // this is a recurring phrase reappearing later in the talk (e.g. "you use
+    // every day"), not the same utterance. Without this cap, the fuzzy match
+    // below picks up that stale occurrence and inflates the seen->overlay
+    // latency metric to tens of seconds (a measurement artifact only - this
+    // value is used solely for telemetry, never for behavior).
+    const exact = sourceSeenKeys.get(key);
+    if (exact !== undefined && now - exact <= FIRST_SEEN_MAX_LOOKBACK_MS) {
+      return exact;
     }
     let bestSeenAt = 0;
     let bestWords = 0;
     for (const [seenKey, seenAt] of sourceSeenKeys.entries()) {
+      if (now - seenAt > FIRST_SEEN_MAX_LOOKBACK_MS) {
+        continue;
+      }
       if (seenKey.includes(key) || key.includes(seenKey)) {
         const words = Math.min(key.split(" ").length, seenKey.split(" ").length);
         if (words > bestWords) {
