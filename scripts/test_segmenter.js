@@ -124,6 +124,22 @@ runCase(
   ""
 );
 
+// Regression: YouTube CC delivers a rolling window where the front drops off
+// and the back grows, so a multi-word term ("liquid glass") arrives split
+// across windows. The segmenter must stitch the overlap and commit the term
+// intact, otherwise the model mistranslates "liquid"/"call" in isolation
+// ("жидкость" / "позвоните"). See 2026-05-31 project-memory entry.
+runCase(
+  "stitch rolling window so multi-word term stays intact",
+  [
+    ["And it starts with an entirely new expressive material we call", 1000],
+    ["an entirely new expressive material we call liquid", 1600],
+    ["expressive material we call liquid glass.", 2200],
+    ["Liquid glass is translucent and behaves just like glass.", 4000]
+  ],
+  "And it starts with an entirely new expressive material we call liquid glass. | Liquid glass is translucent and behaves just like glass."
+);
+
 {
   const segmenter = new Segmenter({ qualityMaxWaitMs: 4800, maxInputChars: 1200 });
   const outputs = [];

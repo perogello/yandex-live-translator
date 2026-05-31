@@ -123,3 +123,5 @@ Validation (simulation on the real log via `scripts/sim_youtube_segmenter.js`, r
 - "Liquid Glass" now committed intact: "...an entirely new expressive material we call liquid glass."
 - Residual (minor, pre-existing segmenter behavior): ~9% still start lowercase; 2/371 had a doubled word at a stitch boundary ("concentric concentric"). Left as-is (segmenter is tested code; risk not worth 2 cases).
 - `node --check extension\src\content.js`; `node scripts\test_segmenter.js`; `node scripts\test_youtube_reader.js` all pass.
+- Locked the fix with a regression test in `scripts/test_segmenter.js` ("stitch rolling window so multi-word term stays intact").
+- Added `scripts/run_all_tests.ps1` as a single suite runner (JS unit tests + node --check + Python cleanup test); run with `powershell -ExecutionPolicy Bypass -File scripts\run_all_tests.ps1`.
