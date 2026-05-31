@@ -17,18 +17,21 @@ function Run-Test($name, $cmd) {
     }
 }
 
-# JS unit tests
-Run-Test "segmenter"        "node scripts/test_segmenter.js"
-Run-Test "youtube-reader"   "node scripts/test_youtube_reader.js"
+# JS unit tests (by pipeline stage)
+Run-Test "ingestion: youtube-reader" "node scripts/test_youtube_reader.js"
+Run-Test "segmentation: segmenter"   "node scripts/test_segmenter.js"
+Run-Test "overlay: dedup"            "node scripts/test_overlay.js"
 
 # JS syntax checks (catch broken edits to the content scripts)
-Run-Test "content.js check" "node --check extension/src/content.js"
-Run-Test "segmenter check"  "node --check extension/src/segmenter.js"
+Run-Test "check content.js"  "node --check extension/src/content.js"
+Run-Test "check segmenter.js" "node --check extension/src/segmenter.js"
+Run-Test "check overlay.js"   "node --check extension/src/overlay.js"
 
 # Python tests (use the translator-server venv if present)
 $py = Join-Path $root "translator-server\.venv\Scripts\python.exe"
 if (-not (Test-Path $py)) { $py = "python" }
-Run-Test "translation-cleanup" "& '$py' scripts/test_translation_cleanup.py"
+Run-Test "translate: glossary corrections" "& '$py' scripts/test_translation_cleanup.py"
+Run-Test "translate: post-processing"      "& '$py' scripts/test_translation_postprocess.py"
 
 Write-Host ""
 if ($failed.Count -gt 0) {

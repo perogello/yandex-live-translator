@@ -216,14 +216,26 @@ def analyze(path: Path) -> None:
     print(f"  drops {drop_pct:.1f}%  |  duplicates {dup_pct:.1f}%  |  "
           f"high-latency {high_pct:.1f}%")
 
+    return {"drops": drop_pct, "duplicates": dup_pct, "high_latency": high_pct}
+
+
+# Default regression thresholds for --check (chosen from the clean reference
+# logs with headroom). Breaching any of these fails the check.
+CHECK_THRESHOLDS = {"drops": 2.0, "duplicates": 6.0, "high_latency": 20.0}
+
 
 def main() -> None:
     try:
         sys.stdout.reconfigure(encoding="utf-8")
     except (AttributeError, ValueError):
         pass
-    if len(sys.argv) > 1:
-        path = Path(sys.argv[1])
+
+    args = [a for a in sys.argv[1:]]
+    do_check = "--check" in args
+    args = [a for a in args if a != "--check"]
+
+    if args:
+        path = Path(args[0])
     else:
         path = find_default_log()
         if path is None:
@@ -232,7 +244,22 @@ def main() -> None:
     if not path.exists():
         print(f"Log not found: {path}", file=sys.stderr)
         sys.exit(1)
-    analyze(path)
+
+    metrics = analyze(path)
+
+    if do_check:
+        print("\n== CHECK (regression gate) ==")
+        failed = []
+        for key, limit in CHECK_THRESHOLDS.items():
+            value = metrics.get(key, 0.0)
+            status = "OK" if value <= limit else "FAIL"
+            if status == "FAIL":
+                failed.append(key)
+            print(f"  {status} {key}: {value:.1f}% (limit {limit:.1f}%)")
+        if failed:
+            print(f"  CHECK FAILED: {', '.join(failed)}")
+            sys.exit(1)
+        print("  CHECK PASSED")
 
 
 if __name__ == "__main__":

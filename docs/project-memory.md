@@ -125,3 +125,29 @@ Validation (simulation on the real log via `scripts/sim_youtube_segmenter.js`, r
 - `node --check extension\src\content.js`; `node scripts\test_segmenter.js`; `node scripts\test_youtube_reader.js` all pass.
 - Locked the fix with a regression test in `scripts/test_segmenter.js` ("stitch rolling window so multi-word term stays intact").
 - Added `scripts/run_all_tests.ps1` as a single suite runner (JS unit tests + node --check + Python cleanup test); run with `powershell -ExecutionPolicy Bypass -File scripts\run_all_tests.ps1`.
+
+## 2026-05-31: Test suite redesign for full-pipeline coverage
+
+Context:
+- The suite only covered segmentation, the YouTube reader, and glossary ASR corrections. Several pipeline stages with real failure history were untested: overlay dedup, translation post-processing (clean/align/bad-russian), output corrections, and timing metrics had no regression gate.
+
+Coverage map now (stage -> test):
+- Ingestion (YouTube CC)      -> `test_youtube_reader.js`
+- Segmentation / stitching    -> `test_segmenter.js`
+- Overlay near-duplicate dedup-> `test_overlay.js` (NEW)
+- Translate: ASR corrections  -> `test_translation_cleanup.py`
+- Translate: post-processing  -> `test_translation_postprocess.py` (NEW)
+- Timing / overlay metrics    -> `analyze_overlay_log.py --check` (opt-in gate)
+
+Added:
+- `scripts/test_overlay.js`: unit tests for `SubtitleOverlay.areNearDuplicates` (exact, contained revisions, unrelated rows kept, case/punctuation-insensitive). Run in a vm sandbox; no DOM needed.
+- `scripts/test_translation_postprocess.py`: tests for `clean_ollama_response` (prefix/quote/ellipsis/placeholder/unbalanced-quote/echoed-English), `align_subtitle_punctuation` (fragment vs complete period, dialogue dashes), `looks_bad_russian` (CJK/all-Latin/empty), and `Glossary.apply_output_corrections` (Liquid Glass, Siri, Gemini restoration).
+- `analyze_overlay_log.py`: `--check` flag that returns the verdict metrics and exits non-zero if drops>2%, duplicates>6%, or high-latency>20% (thresholds from clean reference logs with headroom). Opt-in so normal variance does not break CI; used to gate a freshly collected log.
+- `run_all_tests.ps1`: updated to run all JS+Python tests grouped by stage (47 assertions total).
+
+Known gap (intentionally not closed):
+- `content.js` helper predicates (overlapRatio, looksIncomplete, isLikelyContinuation, shouldDropChunk, splitFirstCompleteSentence) live inside an IIFE and are not exported, so they are untested. Extracting them is a refactor with regression risk on the live read path; deferred. The segmenter (which content.js now delegates to) is well covered, which mitigates most ingestion-quality risk.
+
+Validation:
+- `powershell -ExecutionPolicy Bypass -File scripts\run_all_tests.ps1` -> ALL TESTS PASSED
+- `python scripts\analyze_overlay_log.py --check logs\translations_20260531_021647.jsonl` -> CHECK PASSED
