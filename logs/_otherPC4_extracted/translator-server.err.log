@@ -1,0 +1,103 @@
+INFO:     Started server process [21420]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8765 (Press CTRL+C to quit)
+2026-05-19 12:43:16,914 INFO httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2026-05-19 12:43:17,657 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:43:17,663 INFO translator-server: translator warmup complete latency_ms=1082
+2026-05-19 12:43:30,368 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:43:30,377 INFO translator-server: translated backend=ollama cached=false latency_ms=2598 chars=122
+2026-05-19 12:43:43,242 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:43:43,254 INFO translator-server: translated backend=ollama cached=false latency_ms=911 chars=41
+2026-05-19 12:43:49,386 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:43:49,395 INFO translator-server: translated backend=ollama cached=false latency_ms=1233 chars=64
+2026-05-19 12:43:50,970 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:43:50,976 INFO translator-server: translated backend=ollama cached=false latency_ms=1505 chars=66
+2026-05-19 12:43:52,329 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:43:52,336 INFO translator-server: translated backend=ollama cached=false latency_ms=1352 chars=77
+2026-05-19 12:43:53,800 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:43:53,809 INFO translator-server: translated backend=ollama cached=false latency_ms=1468 chars=96
+2026-05-19 12:43:55,210 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:43:55,220 INFO translator-server: translated backend=ollama cached=false latency_ms=1405 chars=75
+2026-05-19 12:43:59,046 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:43:59,054 INFO translator-server: translated backend=ollama cached=false latency_ms=1602 chars=70
+2026-05-19 12:44:04,179 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:44:04,189 INFO translator-server: translated backend=ollama cached=false latency_ms=1744 chars=80
+2026-05-19 12:44:06,797 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:44:06,806 INFO translator-server: translated backend=ollama cached=false latency_ms=1628 chars=96
+2026-05-19 12:44:11,405 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:44:11,413 INFO translator-server: translated backend=ollama cached=false latency_ms=1809 chars=101
+2026-05-19 12:44:14,340 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:44:14,350 INFO translator-server: translated backend=ollama cached=false latency_ms=1900 chars=76
+2026-05-19 12:44:23,448 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:44:23,457 INFO translator-server: translated backend=ollama cached=false latency_ms=2013 chars=121
+2026-05-19 12:44:32,049 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:44:32,058 INFO translator-server: translated backend=ollama cached=false latency_ms=1613 chars=80
+2026-05-19 12:44:37,043 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:44:37,050 INFO translator-server: translated backend=ollama cached=false latency_ms=1604 chars=56
+2026-05-19 12:44:44,271 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:44:44,280 INFO translator-server: translated backend=ollama cached=false latency_ms=1835 chars=96
+2026-05-19 12:45:02,285 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:45:02,295 INFO translator-server: translated backend=ollama cached=false latency_ms=2840 chars=176
+2026-05-19 12:45:09,704 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:45:09,713 INFO translator-server: translated backend=ollama cached=false latency_ms=2269 chars=119
+2026-05-19 12:45:14,466 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:45:14,476 INFO translator-server: translated backend=ollama cached=false latency_ms=2029 chars=142
+2026-05-19 12:45:24,831 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:45:24,840 INFO translator-server: translated backend=ollama cached=false latency_ms=2394 chars=140
+2026-05-19 12:45:31,269 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:45:31,278 INFO translator-server: translated backend=ollama cached=false latency_ms=1662 chars=68
+2026-05-19 12:45:32,724 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:45:32,732 INFO translator-server: translated backend=ollama cached=false latency_ms=1283 chars=37
+2026-05-19 12:45:40,707 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:45:40,718 INFO translator-server: translated backend=ollama cached=false latency_ms=1273 chars=71
+2026-05-19 12:45:43,499 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:45:43,508 INFO translator-server: translated backend=ollama cached=false latency_ms=1366 chars=60
+2026-05-19 12:45:45,249 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:45:45,259 INFO translator-server: translated backend=ollama cached=false latency_ms=1316 chars=72
+2026-05-19 12:45:46,349 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:45:46,359 INFO translator-server: translated backend=ollama cached=false latency_ms=1094 chars=38
+2026-05-19 12:45:47,785 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:45:47,793 INFO translator-server: translated backend=ollama cached=false latency_ms=1427 chars=61
+2026-05-19 12:45:49,060 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:45:49,070 INFO translator-server: translated backend=ollama cached=false latency_ms=1271 chars=64
+2026-05-19 12:46:03,654 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:03,661 INFO translator-server: translated backend=ollama cached=false latency_ms=2558 chars=171
+2026-05-19 12:46:05,043 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:05,052 INFO translator-server: translated backend=ollama cached=false latency_ms=1385 chars=82
+2026-05-19 12:46:09,724 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:09,731 INFO translator-server: translated backend=ollama cached=false latency_ms=1774 chars=56
+2026-05-19 12:46:11,008 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:11,018 INFO translator-server: translated backend=ollama cached=false latency_ms=1281 chars=69
+2026-05-19 12:46:20,389 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:20,398 INFO translator-server: translated backend=ollama cached=false latency_ms=3451 chars=187
+2026-05-19 12:46:27,146 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:27,154 INFO translator-server: translated backend=ollama cached=false latency_ms=2207 chars=112
+2026-05-19 12:46:28,093 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:28,106 INFO translator-server: translated backend=ollama cached=false latency_ms=947 chars=35
+2026-05-19 12:46:31,984 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:31,993 INFO translator-server: translated backend=ollama cached=false latency_ms=1049 chars=37
+2026-05-19 12:46:39,878 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:39,885 INFO translator-server: translated backend=ollama cached=false latency_ms=2776 chars=146
+2026-05-19 12:46:41,107 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:41,116 INFO translator-server: translated backend=ollama cached=false latency_ms=1226 chars=44
+2026-05-19 12:46:44,845 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:44,854 INFO translator-server: translated backend=ollama cached=false latency_ms=1193 chars=66
+2026-05-19 12:46:46,236 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:46,250 INFO translator-server: translated backend=ollama cached=false latency_ms=1390 chars=64
+2026-05-19 12:46:50,257 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:50,270 INFO translator-server: translated backend=ollama cached=false latency_ms=2326 chars=151
+2026-05-19 12:46:53,296 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:46:53,306 INFO translator-server: translated backend=ollama cached=false latency_ms=1360 chars=53
+2026-05-19 12:47:00,936 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:47:00,945 INFO translator-server: translated backend=ollama cached=false latency_ms=1983 chars=97
+2026-05-19 12:47:08,914 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:47:08,923 INFO translator-server: translated backend=ollama cached=false latency_ms=1977 chars=90
+2026-05-19 12:47:10,023 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:47:10,031 INFO translator-server: translated backend=ollama cached=false latency_ms=1103 chars=49
+2026-05-19 12:47:11,667 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:47:11,674 INFO translator-server: translated backend=ollama cached=false latency_ms=1637 chars=68
+2026-05-19 12:47:18,156 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:47:18,165 INFO translator-server: translated backend=ollama cached=false latency_ms=2073 chars=161
+2026-05-19 12:47:24,725 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-05-19 12:47:24,733 INFO translator-server: translated backend=ollama cached=false latency_ms=2093 chars=127

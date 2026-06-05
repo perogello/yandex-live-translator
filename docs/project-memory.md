@@ -296,3 +296,20 @@ Operator guidance:
 - Capture raw reads: keep OFF for normal use / broadcasts; enable only when asked to collect a segmenter corpus.
 
 Validation: node --check (content.js, settings.js, options.js); full run_all_tests.ps1 -> ALL TESTS PASSED.
+
+## 2026-06-05: Gemma 4 12B research note
+
+Context:
+- Operator asked whether new Gemma 4 12B can bring value even though it is not a dedicated translation model.
+- Local pipeline remains centered on `translategemma:12b`; recent stability work is mostly source/segmentation/overlay safety, not model replacement.
+
+Findings:
+- Official Google docs describe Gemma 4 12B as a multimodal instruction model with text/image/audio input, text output, multilingual capability, audio handling up to 30 minutes, and 128K context.
+- It is theoretically useful for ASR repair, suspicious-segment QA, offline log analysis, and future direct audio-to-text/audio-to-translation experiments.
+- It is NOT a safe live replacement for TranslateGemma without A/B testing on real logs. General models can be stronger at reasoning while still hurting Russian fluency, product-name preservation, or live latency.
+- Current Ollama path is not clearly plug-and-play for Gemma 4 12B on the existing Windows/NVIDIA setup; official Ollama docs emphasize Gemma 4 4B and note audio multimodal limitations.
+
+Decision:
+- Keep `translategemma:12b` as the live default.
+- If Gemma 4 12B becomes locally runnable, add it only as a benchmark/research candidate first.
+- Safest possible role: fallback/checker for damaged ASR or suspicious segments, not primary live translator.
