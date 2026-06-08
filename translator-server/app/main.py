@@ -63,6 +63,17 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def allow_private_network(request, call_next):
+    # Chrome/Edge "Private Network Access": a request from an https page (e.g.
+    # youtube.com) to a private address (127.0.0.1) is blocked unless the
+    # (pre-flight) response carries this header. Without it the extension's
+    # fetch fails with "Failed to fetch" even though the server is healthy.
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Private-Network"] = "true"
+    return response
+
+
 async def warmup_model() -> None:
     if not config.runtime.warmup_on_start:
         return
