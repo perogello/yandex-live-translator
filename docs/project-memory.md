@@ -313,3 +313,20 @@ Decision:
 - Keep `translategemma:12b` as the live default.
 - If Gemma 4 12B becomes locally runnable, add it only as a benchmark/research candidate first.
 - Safest possible role: fallback/checker for damaged ASR or suspicious segments, not primary live translator.
+
+## 2026-06-09: "Failed to fetch" = Local Network Access; route via service worker
+
+Symptom: extension showed "Failed to fetch"; server was healthy and CORS open. Browser console (the decisive evidence) showed:
+"Access to fetch at 'http://127.0.0.1:8765/translate' from origin 'https://www.youtube.com' has been blocked by CORS policy: Permission was denied for this request to access the `loopback` address space."
+
+Root cause: modern Chrome/Edge "Local Network Access" (successor to Private Network Access) blocks a content script running in a PUBLIC page origin from fetching a loopback/private address. NOT a regression in our code (all extension JS valid, server translates fine) - it starts failing after a browser update.
+
+Two fixes:
+- `main.py`: added an http middleware that sets `Access-Control-Allow-Private-Network: true` on every response (covers the classic PNA preflight). Verified present on GET and OPTIONS. Helpful but NOT sufficient for the newer LNA model.
+- THE real fix: new `extension/src/background.js` service worker performs all backend fetches from the privileged extension context (host_permissions cover 127.0.0.1, exempt from the page-origin loopback block). `translator-client.js` now sends `{type:"yatr-fetch", url, method, body, timeoutMs}` messages to it instead of fetching from the page. Covers /translate, /subtitle, /activity, /debug/raw-read, /context/reset. `manifest.json` registers `"background": { "service_worker": "src/background.js" }`.
+
+Operator action after pulling: chrome://extensions -> Reload the extension (manifest changed, SW must register), then reload the video page.
+
+Process note (lesson): when diagnosing on the live machine, do NOT spawn duplicate uvicorn instances - a stuck old instance kept port 8765 and served old code, masking the fix. Kill the port owner by PID (Get-NetTCPConnection OwningProcess), or just restart via run_all_servers.bat.
+
+Validation: node --check (background.js, translator-client.js), manifest JSON valid, full run_all_tests.ps1 -> ALL PASSED. Pending: operator confirms in-browser after reloading the extension.
