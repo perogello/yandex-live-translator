@@ -14,9 +14,6 @@ ollama:
   timeout_sec: 20
   keep_alive: "10m"
   context_items: 6
-  # Стиль перевода задаётся в расширении (Options -> "Стиль перевода").
-  # Это значение используется только если расширение не передало стиль.
-  prompt_style: "красивый"
 
 ct2_opus:
   model_path: "D:/AI/Models/opus-mt-en-ru-ctranslate2"
