@@ -9,6 +9,9 @@ translator-server/config.yaml.bak
 # Логи переводов: содержат текст просмотренных трансляций
 logs/*.jsonl
 logs/*.log
+logs/*.zip
+logs/*_extracted/
+logs/_*_extracted/
 logs/test/
 
 # Python виртуальные окружения (большие, генерятся через setup_windows.bat)
